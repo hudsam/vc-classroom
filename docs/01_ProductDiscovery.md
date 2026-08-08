@@ -1,6 +1,6 @@
 # Dokumen Perencanaan Produk: Platform Sewa Smart Classroom
 **Peran / Penulis:** Senior Product Manager  
-**Versi:** 1.2  
+**Versi:** 1.3  
 **Tanggal:** 8 Agustus 2026  
 **Target Audiens:** Stakeholder Bisnis, UI/UX Designer, Software Engineer (Frontend/Backend), Quality Assurance (QA)  
 
@@ -10,6 +10,7 @@
 | :--- | :--- | :--- | :--- |
 | 1.0 | Dokumen (keseluruhan) | — | Draf awal dokumen product discovery. |
 | 1.2 | Business Model & Monetization (8) | Harga hanya ditandai "indikatif" tanpa alat bantu penentuan; kebijakan refund subscription belum ada (hanya cancellation policy pay-per-use di FRD §7.2). | Ditambahkan §8.1 (Tabel Kerja Penentuan Harga, untuk diisi tim bisnis) dan §8.2 (Kebijakan Refund Subscription, draft kontekstual) — tindak lanjut P1-4 pada `docs/A_AnalysisSummary.md`. |
+| 1.3 | Business Model & Monetization (8, 8.1) | Tim bisnis sudah mengisi & menyetujui worksheet §8.1 dengan harga final, namun ringkasan utama di §8 (Rincian Strategi Monetisasi) masih menampilkan angka "misal: Rp150.000-350.000" bergaya indikatif — tidak sinkron dengan §8.1. | Angka final (Small Rp150rb, Medium Rp250rb, Large Rp350rb; Basic Rp1,2jt, Pro Rp4,9jt, Enterprise Rp11,9jt/bulan) dipindahkan ke §8; catatan "indikatif" dihapus untuk pricing; status §8.1 diperbarui jadi "selesai diisi & disetujui". Kebijakan refund subscription (§8.2) tetap draft kontekstual **secara sengaja**, tidak diubah. |
 | 1.1 | Product Vision (2) | Hanya kutipan visi dalam Bahasa Inggris. | Ditambahkan terjemahan bebas dalam Bahasa Indonesia agar mudah dipahami semua pembaca. |
 | 1.1 | Problem Statement (3.1) | Daftar 3 poin masalah tanpa ID dan tanpa keterangan pihak terdampak/dampak. | Diubah menjadi tabel dengan ID (P1-P3), kolom "Siapa Paling Terdampak" & "Dampak Jika Tidak Diatasi", ditambah catatan bahwa data masih kualitatif dan perlu riset pasar. |
 | 1.1 | Solusi Produk (3.2) | 3 solusi dijabarkan tanpa keterkaitan eksplisit ke problem statement; terdapat typo "dashbord". | Setiap solusi ditandai relasi ke ID problem terkait (mis. "menjawab P1, P3"); typo "dashbord" diperbaiki menjadi "dashboard". |
@@ -217,21 +218,21 @@ graph TD
 ```
 
 ### Rincian Strategi Monetisasi:
-1. **Pay-Per-Use / On-Demand:** Biaya sewa berdasarkan jam (misal: Rp 150.000 - Rp 350.000 / jam tergantung tipe ruangan). Cocok untuk kebutuhan insidental Persona 1 (Dr. Aris) dan Persona 3 (Bima Utama) yang tidak selalu butuh sewa rutin.
-2. **Tiered Subscription (Pengajar & Lembaga):**
-   * *Basic:* 10 jam/bulan + Standard Storage — target pengajar independen dengan jadwal rutin ringan.
-   * *Pro:* 30 jam/bulan + AI Transcription + Cloud Storage 500GB — target trainer korporat/kreator konten aktif (Persona 2 & 3).
-   * *Enterprise:* Unlimited access (prakiraan kuota) + Dedicated Support + Custom Integrasi LMS — target institusi/perusahaan (kelanjutan B2B Enterprise Partnership).
+1. **Pay-Per-Use / On-Demand:** Harga final per jam berdasarkan tipe ruangan — **Small Rp150.000, Medium Rp250.000, Large Rp350.000** (disetujui Senior PM & Finance, 8 Agustus 2026; dasar perhitungan & perbandingan kompetitor di §8.1.A). Cocok untuk kebutuhan insidental Persona 1 (Dr. Aris) dan Persona 3 (Bima Utama) yang tidak selalu butuh sewa rutin.
+2. **Tiered Subscription (Pengajar & Lembaga)** — harga final disetujui 8 Agustus 2026 (dasar perhitungan di §8.1.B):
+   * *Basic:* 10 jam/bulan + Standard Storage — **Rp1.200.000/bulan** — target pengajar independen dengan jadwal rutin ringan.
+   * *Pro:* 30 jam/bulan + AI Transcription + Cloud Storage 500GB — **Rp4.900.000/bulan** — target trainer korporat/kreator konten aktif (Persona 2 & 3).
+   * *Enterprise:* Unlimited access (prakiraan kuota) + Dedicated Support + Custom Integrasi LMS — **Rp11.900.000/bulan** — target institusi/perusahaan (kelanjutan B2B Enterprise Partnership).
 3. **Add-on Services:**
    * AI Transkripsi & Rangkuman Materi Otomatis.
    * Penyimpanan Cloud Jangka Panjang (Archive Vault).
    * Layanan Live Streaming Multi-platform simultaneously (YouTube, Zoom, Twitch).
 
-> **Catatan:** Seluruh angka harga di atas bersifat **indikatif** dan perlu divalidasi melalui riset harga pasar (dibandingkan dengan tarif Studio Rekaman Lokal & Ruang Co-Working pada Bagian 6) sebelum ditetapkan sebagai harga final saat Beta Launch. Kebijakan pembatalan/refund untuk model pay-per-use *booking per sesi* sudah final strukturnya di `03_FunctionalRequirementDocument.md` §7.2 (100%/50%/0% berdasarkan jarak waktu ke sesi); kebijakan refund untuk *subscription* dibahas terpisah di §8.2 karena sifatnya berbeda (siklus bulanan, bukan per sesi).
+> **Catatan:** Harga pay-per-use dan subscription di atas adalah **harga final** hasil validasi tim bisnis (rincian & dasar perhitungan lengkap di §8.1). Kebijakan pembatalan/refund untuk model pay-per-use *booking per sesi* sudah final strukturnya di `03_FunctionalRequirementDocument.md` §7.2 (100%/50%/0% berdasarkan jarak waktu ke sesi); kebijakan refund untuk *subscription* masih berstatus **draft kontekstual** di §8.2 — ini disengaja (bukan gap), karena teks & SLA finalnya baru akan dituntaskan saat halaman Kebijakan & Ketentuan (IA screen 1.6) dibangun.
 
-### 8.1 Tabel Kerja Penentuan Harga (Worksheet — Untuk Diisi Tim Bisnis)
+### 8.1 Tabel Kerja Penentuan Harga (Worksheet)
 
-> Tabel ini adalah **alat bantu kerja**, bukan harga final. Isi kolom bertanda `_(isi)_` melalui riset pasar & kalkulasi biaya operasional, lalu pindahkan hasil akhirnya ke Bagian 8 (Rincian Strategi Monetisasi) di atas begitu disepakati.
+> **Status: selesai diisi & disetujui** (Senior PM & Finance, 8 Agustus 2026). Hasil akhirnya sudah dipindahkan ke Bagian 8 (Rincian Strategi Monetisasi) di atas. Tabel di bawah ini dipertahankan sebagai jejak audit dasar perhitungan (perbandingan kompetitor, estimasi biaya operasional, margin) — bukan lagi worksheet kosong.
 
 **A. Pay-Per-Use per Tipe Ruangan** (tier kapasitas mengikuti filter katalog di `03_FunctionalRequirementDocument.md` §2.1 & `04_InformationArchitecture.md` H-01)
 

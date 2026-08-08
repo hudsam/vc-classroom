@@ -1,5 +1,5 @@
 # Information Architecture (IA) Document: Platform Sewa Smart Classroom
-**Versi:** 1.2  
+**Versi:** 1.3  
 **Tanggal:** 8 Agustus 2026  
 **Penulis:** Senior Product Manager  
 **Target Audiens:** UI/UX Designer, Frontend Engineer, Lead Software Engineer, Product Manager, System Architect  
@@ -13,6 +13,7 @@
 | Versi | Bagian | Sebelum | Sesudah |
 | :--- | :--- | :--- | :--- |
 | 1.0 | Dokumen (keseluruhan) | — | Draf awal Information Architecture. |
+| 1.3 | Screen Hierarchy (4.5-4.13 - baru) | 9 screen pada cakupan minimal P1-5 (Subscription, Account Profile, 7 screen Admin Portal) masih berstatus Pending di tabel Cakupan §4.0. | Ditambahkan H-05 s/d H-13 mengikuti pola H-01-H-04 (route, breakdown konten bernomor, rujukan FR/FEAT/error code, catatan akses RBAC). Tabel §4.0 diperbarui: 13/28 screen kini Done. Satu catatan terbuka ditambahkan di H-11 (Audit Logs) karena FRD §4 RBAC belum eksplisit mendefinisikan permission untuk log audit — ditandai jujur sebagai asumsi kerja, bukan fakta pasti. |
 | 1.2 | Global Sitemap (2) | Belum ada screen untuk halaman Kebijakan & Ketentuan meski PD §8.2 mulai mereferensikannya. | Ditambahkan **1.6 Kebijakan & Ketentuan (Terms & Policy)** sebagai placeholder — konten detail menyusul saat kebijakan refund subscription difinalisasi. |
 | 1.2 | Screen Hierarchy (4) | Status kelengkapan *content hierarchy* per screen tidak ditrack secara eksplisit — hanya disebut naratif ("4 dari ~20 screen"), sehingga gap serupa (Temuan #6 di `docs/A_AnalysisSummary.md`) berisiko lolos lagi tanpa disadari di revisi berikutnya. | Ditambahkan **tabel Cakupan Screen Hierarchy** di awal Bagian 4 yang melacak status Done/Pending untuk seluruh 28 screen di sitemap, plus aturan: screen baru wajib ditambahkan ke tabel ini sebelum dianggap *ready for design* (P1-5). |
 | 1.1 | Global Sitemap (2) | Diagram ASCII box-tree memiliki baris rusak/tidak sejajar (kolom "2.3 Checkout Page" & "5.4 Manual Unlock" kehilangan garis pohon); tidak ada screen untuk Pembatalan Booking (FEAT-BKG-03) maupun User/Role Management (FEAT-USR-02) meski keduanya sudah didefinisikan di FRD. | Diagram ASCII diganti daftar bertingkat yang lebih tahan-rusak; ditambahkan 3.7 (Cancellation & Refund Confirmation), 5.6 (Booking & Refund Management), dan 5.7 (User & Role Management). |
@@ -153,22 +154,22 @@ Berikut adalah hierarki konten (*Wireframe/Content Structure*) pada halaman-hala
 | 3.0 User Dashboard | 3.2 Active Bookings | ⏳ Pending | — |
 | 3.0 User Dashboard | 3.3 E-Ticket & Access Pass | ⏳ Pending | — |
 | 3.0 User Dashboard | 3.4 Cloud Video Vault | ✅ Done | H-04 (§4.4) |
-| 3.0 User Dashboard | 3.5 Subscriptions | ⏳ Pending | — |
-| 3.0 User Dashboard | 3.6 Account Profile | ⏳ Pending | — |
+| 3.0 User Dashboard | 3.5 Subscriptions | ✅ Done | H-05 (§4.5) |
+| 3.0 User Dashboard | 3.6 Account Profile | ✅ Done | H-06 (§4.6) |
 | 3.0 User Dashboard | 3.7 Cancellation & Refund Confirmation | ⏳ Pending | — |
 | 4.0 In-Room Controller | 4.1 Room Auth Gate | ⏳ Pending | — |
 | 4.0 In-Room Controller | 4.2 Control Panel | ✅ Done | H-02 (§4.2) |
 | 4.0 In-Room Controller | 4.3 Studio Live Feed | ⏳ Pending | — |
 | 4.0 In-Room Controller | 4.4 Session Complete | ⏳ Pending | — |
-| 5.0 Admin Portal | 5.1 Ops Dashboard | ⏳ Pending | — |
-| 5.0 Admin Portal | 5.2 Room Management | ⏳ Pending | — |
-| 5.0 Admin Portal | 5.3 Hardware Status | ⏳ Pending | — |
-| 5.0 Admin Portal | 5.4 Manual Unlock | ⏳ Pending | — |
-| 5.0 Admin Portal | 5.5 Audit Logs | ⏳ Pending | — |
-| 5.0 Admin Portal | 5.6 Booking & Refund Management | ⏳ Pending | — |
-| 5.0 Admin Portal | 5.7 User & Role Management | ⏳ Pending | — |
+| 5.0 Admin Portal | 5.1 Ops Dashboard | ✅ Done | H-07 (§4.7) |
+| 5.0 Admin Portal | 5.2 Room Management | ✅ Done | H-08 (§4.8) |
+| 5.0 Admin Portal | 5.3 Hardware Status | ✅ Done | H-09 (§4.9) |
+| 5.0 Admin Portal | 5.4 Manual Unlock | ✅ Done | H-10 (§4.10) |
+| 5.0 Admin Portal | 5.5 Audit Logs | ✅ Done* | H-11 (§4.11) — *akses role masih perlu konfirmasi FRD, lihat catatan di H-11 |
+| 5.0 Admin Portal | 5.6 Booking & Refund Management | ✅ Done | H-12 (§4.12) |
+| 5.0 Admin Portal | 5.7 User & Role Management | ✅ Done | H-13 (§4.13) |
 
-**Ringkasan:** 4 dari 28 screen (14%) sudah punya content hierarchy formal. Sisanya adalah pekerjaan lanjutan tim UI/UX (P1-5 di `docs/A_AnalysisSummary.md`) — bukan lagi risiko "terlewat tanpa disadari" karena sudah tercatat eksplisit di tabel ini.
+**Ringkasan:** 13 dari 28 screen (46%) sudah punya content hierarchy formal — mencakup seluruh cakupan minimal P1-5 (`docs/A_AnalysisSummary.md`: Subscription, Account Profile, dan 7 screen Admin Portal). 15 screen sisanya (didominasi area Public/Guest dan alur dasar Booking/Dashboard yang lebih sederhana) tetap pekerjaan lanjutan tim UI/UX — statusnya tercatat eksplisit di tabel ini, bukan lagi risiko "terlewat tanpa disadari".
 
 ### 4.1 Screen H-01: Room Catalog & Discovery Page (`/rooms`)
 1. **Header Navigation Bar:** Logo, Location Selector, Search Bar, Global Nav (Pricing, Help), User Profile Avatar / Login Button.
@@ -229,6 +230,89 @@ Berikut adalah hierarki konten (*Wireframe/Content Structure*) pada halaman-hala
    * Jika status `Ready`: tampilkan CTA `Unduh Transkrip (.srt/.pdf)`.
    * Jika `TRANSCRIPTION_FAILED`: tampilkan pesan "Transkripsi gagal, video tetap tersedia" (video tetap bisa diunduh, transkrip tidak).
    * **Kondisi akses berbeda per role (lihat FRD §4 RBAC):** untuk role `Member`, transkrip berstatus *Pay Add-on* — tampilkan CTA upsell `Aktifkan AI Transcription` jika belum dibeli saat booking; untuk `Premium Member`, transkrip *Included* — langsung tersedia tanpa upsell.
+
+### 4.5 Screen H-05: Subscription (`/dashboard/subscription`)
+
+> *Cakupan minimal P1-5 pada `docs/A_AnalysisSummary.md`. Harga tier merujuk PD §8.1.B (harga final, disetujui 8 Ags 2026).*
+
+1. **Current Plan Card:** Nama tier aktif (Basic/Pro/Enterprise), progress bar kuota jam terpakai vs total, tanggal *renewal* berikutnya, harga per bulan.
+2. **Compare Plans Table:** Perbandingan fasilitas & harga 3 tier (mirror PD §8, Rincian Strategi Monetisasi poin 2), dengan CTA `Upgrade`/`Downgrade` per kolom.
+3. **Metode Pembayaran Auto-Renewal:** Kartu/VA tersimpan, CTA `Ganti Metode Pembayaran`.
+4. **Riwayat Tagihan:** Daftar invoice per siklus dengan status `Paid`/`Failed`.
+5. **CTA Batalkan Subscription:** Membuka modal konfirmasi yang menampilkan status kelayakan refund sesuai PD §8.2 (draft kontekstual) — jika dalam 30 hari pertama aktivasi: tampilkan estimasi refund 100%; jika setelah itu: tampilkan pesan "Tidak ada refund, akses aktif hingga akhir siklus berjalan".
+6. **State Guest/Member (pay-per-use):** Bila pengguna belum berlangganan, seluruh kartu di atas diganti satu CTA besar `Mulai Berlangganan` menuju Compare Plans Table (poin 2).
+
+### 4.6 Screen H-06: Account Profile (`/dashboard/profile`)
+
+> *Cakupan minimal P1-5. Field mengikuti validasi `user_phone` di FRD §6 dan FEAT-USR-01/02 (FR-09).*
+
+1. **Form Data Diri:** Nama, email (read-only pasca verifikasi), nomor HP (format `+62xxx`, validasi sesuai FRD §6), institusi/organisasi (opsional).
+2. **Keamanan Akun:** CTA `Ubah Kata Sandi`, toggle autentikasi dua faktor (jika tersedia), daftar sesi login aktif dengan CTA `Keluar dari Semua Perangkat`.
+3. **Status Role & Membership (Read-Only):** Badge `Member` atau `Premium Member` — berubah otomatis mengikuti status subscription (FEAT-USR-02), tidak dapat diedit manual oleh pengguna.
+4. **Preferensi Notifikasi:** Toggle email/in-app untuk kategori: konfirmasi booking, status upload video, tagihan.
+5. **Danger Zone:** CTA `Hapus Akun` (dengan konfirmasi ganda) dan `Keluar (Logout)`.
+
+### 4.7 Screen H-07: Ops Dashboard (`/admin`)
+
+> *Cakupan minimal P1-5 — bagian dari Admin Portal (5.0), akses Studio Admin/Super Admin sesuai IA §7.*
+
+1. **KPI Cards:** Classroom Utilization Rate (ref. PRD §6 Success Metrics), jumlah booking aktif hari ini, jumlah insiden perangkat IoT (ref. `IOT_GATEWAY_OFFLINE`), jumlah late-checkout menunggu pencatatan manual (ref. FRD §7.3 v1.3).
+2. **Live Alert Feed:** Notifikasi real-time untuk `IOT_GATEWAY_OFFLINE` dan percobaan akses berulang (`TOKEN_EXPIRED_OR_INVALID` >3x pada room yang sama, ref. FRD §8).
+3. **Quick Links:** Navigasi cepat ke 5.2 Room Management, 5.3 Hardware Status, 5.4 Manual Unlock, 5.6 Booking & Refund Management, 5.7 User & Role Management.
+
+### 4.8 Screen H-08: Room Management (`/admin/rooms`)
+
+> *Cakupan minimal P1-5.*
+
+1. **Room List Table:** Nama ruangan, lokasi, kapasitas (Small/Medium/Large — ref. PD §8.1.A), status (`Tersedia`/`Terkunci`/`Maintenance`), harga per jam.
+2. **Form Tambah/Edit Ruangan:** Checkbox fasilitas (Smart Board, Multi-Cam AI, Studio Podcasting, Audio Array — mirror filter katalog FRD §2.1), input harga per jam.
+3. **Toggle Mode Maintenance:** Menonaktifkan ruangan sementara dari katalog publik (1.2 Catalog Search).
+4. **Akses:** Studio Admin (Read/Write), Super Admin (Full Access) — sesuai FRD §4 RBAC baris "Manage Room & Hardware Config".
+
+### 4.9 Screen H-09: Hardware Status (`/admin/hardware`)
+
+> *Cakupan minimal P1-5.*
+
+1. **Device List per Ruangan:** Smart Lock, AI Camera, Audio Array — status `Online`/`Offline`, timestamp *heartbeat* terakhir.
+2. **CTA Diagnostik Manual:** Kirim perintah tes/restart perangkat.
+3. **Indikator Insiden:** Highlight merah untuk perangkat yang memicu `IOT_GATEWAY_OFFLINE` dalam 24 jam terakhir.
+4. **Akses:** Studio Admin (Read/Write), Super Admin (Full Access).
+
+### 4.10 Screen H-10: Manual Unlock (`/admin/manual-unlock`)
+
+> *Cakupan minimal P1-5. Mendukung fail-safe `IOT_GATEWAY_OFFLINE` (FRD §8).*
+
+1. **Pencarian Booking/Ruangan Aktif:** Cari berdasarkan `booking_id` atau nama ruangan.
+2. **CTA Buka Pintu Manual:** Tombol besar dengan konfirmasi ganda (mencegah *misclick*), dipakai petugas lapangan saat Smart Lock tidak merespon.
+3. **Form Alasan Override:** Wajib diisi sebelum override dieksekusi — tersimpan ke 5.5 Audit Logs.
+4. **Akses:** Studio Admin (Execute), Super Admin (Full Access) — **tidak tampil sama sekali** di navigasi untuk role lain (ref. IA §7).
+
+### 4.11 Screen H-11: Audit Logs (`/admin/audit-logs`)
+
+> *Cakupan minimal P1-5.*
+
+1. **Tabel Log Ter-filter:** Kolom Aksi, Aktor (role), Timestamp, Booking/Room Terkait — filter berdasarkan tipe aksi & rentang tanggal.
+2. **Tipe Entri yang Dicatat:** Manual Unlock override (4.10), pencatatan manual late-checkout (FRD §7.3), override cancel/refund oleh admin (4.12), perubahan role user (4.13).
+3. **CTA Export:** Unduh log sebagai CSV.
+4. **Akses:** *(catatan terbuka)* FRD §4 RBAC belum secara eksplisit mendefinisikan baris permission untuk Audit Logs. Asumsi kerja sementara: **Super Admin Full Access**; **Studio Admin tanpa akses** (agar jejak audit independen dari Ops yang diaudit) — perlu dikonfirmasi & ditambahkan secara eksplisit pada revisi FRD berikutnya, bukan diasumsikan permanen.
+
+### 4.12 Screen H-12: Booking & Refund Management (`/admin/bookings`)
+
+> *Cakupan minimal P1-5. Beda dari 3.2 Active Bookings (yang hanya menampilkan booking milik user login) — screen ini lintas-pengguna.*
+
+1. **Tabel Semua Booking:** Filter berdasarkan status, ruangan, rentang tanggal, nama pemesan.
+2. **CTA Override Cancel/Refund:** Untuk kasus di luar alur self-service (3.7) — mis. permintaan by phone/email. Menampilkan kalkulasi refund yang sama dengan FRD §7.2, dengan field alasan override wajib diisi (tercatat ke 5.5 Audit Logs).
+3. **CTA Catat Biaya Late Checkout Manual:** Input manual biaya `1.5x tarif/jam` sesuai proses FRD §7.3 v1.3.
+4. **Akses:** Studio Admin (Execute), Super Admin (Full Access).
+
+### 4.13 Screen H-13: User & Role Management (`/admin/users`)
+
+> *Cakupan minimal P1-5. Mendukung FEAT-USR-02 (FR-09).*
+
+1. **Tabel Pengguna:** Nama, email, role saat ini, status subscription (jika ada), tanggal registrasi.
+2. **Dropdown Ubah Role:** Member / Premium Member / Studio Admin / Super Admin — perubahan tercatat ke 5.5 Audit Logs.
+3. **CTA Suspend/Aktifkan Akun.**
+4. **Akses:** **Super Admin Full Access saja** — Studio Admin tidak memiliki akses ke penetapan role (konsisten dengan catatan FRD §4: "Studio Admin (Ops) khusus mengelola izin Manual Override").
 
 ---
 
