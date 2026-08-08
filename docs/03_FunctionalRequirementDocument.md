@@ -1,5 +1,5 @@
 # Functional Requirement Document (FRD): Platform Sewa Smart Classroom
-**Versi:** 1.1  
+**Versi:** 1.2  
 **Tanggal:** 8 Agustus 2026  
 **Penulis:** Senior Product Manager  
 **Target Audiens:** Lead Software Engineer (Frontend/Backend), IoT Integration Engineer, UI/UX Designer, QA Automation, System Architect  
@@ -9,6 +9,7 @@
 
 | Versi | Bagian | Sebelum | Sesudah |
 | :--- | :--- | :--- | :--- |
+| 1.2 | Feature Module Matrix (2), Modul 7 (2.7) | Modul 7 (User & Access Mgmt) ditelusuri sementara ke NFR-S03 karena PRD belum punya FR khusus — ditandai sebagai *gap PRD*. | PRD v1.2 menambahkan **FR-09 (Manajemen Akun & Autentikasi Pengguna)**. Traceability Modul 7 diperbarui dari NFR-S03 menjadi FR-09 (NFR-S03 tetap relevan sebagai kebutuhan keamanan pendukung); status "gap PRD" dihapus karena sudah tertutup. |
 | 1.0 | Dokumen (keseluruhan) | — | Draf awal Functional Requirement Document. |
 | 1.1 | Referensi Nama File (1, 6) | Merujuk `02_PRD.md` dan `03_FRD.md`, tidak sesuai nama file sebenarnya. | Diperbaiki menjadi `02_ProductRequirementDocument.md` dan `03_FunctionalRequirementDocument.md` agar tautan antar dokumen valid. |
 | 1.1 | Feature Module Matrix (2) | FEAT-PAY-02 (Subscription Quota Deduction) salah ditelusuri ke FR-03 (Gateway Pembayaran); Modul 7 (User & Access Mgmt) juga ditelusuri ke FR-08 — bentrok dengan FEAT-PAY-02 yang seharusnya memilikinya. Fitur Pembatalan/Refund (Bagian 7.2) tidak punya ID fitur sama sekali. | FEAT-PAY-02 ditelusuri ke FR-08 (sesuai isi PRD: "Manajemen Kuota"); Modul 7 ditelusuri ke NFR-S03 karena PRD belum punya FR khusus untuk User & Access Management (dicatat sebagai gap untuk PRD berikutnya); ditambahkan FEAT-BKG-03 (Cancellation & Refund Engine). |
@@ -32,7 +33,7 @@ Dokumen Functional Requirement Document (FRD) ini menerjemahkan kebutuhan produk
 * **PRD (`02_ProductRequirementDocument.md`):** Mengatur *WHAT* (Scope, Product Goals, Functional High-Level, User Stories & Acceptance Criteria, KPIs).
 * **FRD (`03_FunctionalRequirementDocument.md` - Dokumen Ini):** Mengatur *HOW* (Detail Fitur, End-to-End Workflow, Validasi Data, Logic Error Handling, API Endpoint Contracts, RBAC, & Business Logic Rules).
 
-> **Prinsip acuan:** Setiap ID (FR-xx, NFR-xx, AC-x.x) yang dirujuk di dokumen ini **harus sudah terdefinisi** di `02_ProductRequirementDocument.md`. Jika FRD membutuhkan fitur yang belum punya ID PRD (lihat Bagian 2.7), hal itu dicatat eksplisit sebagai gap yang perlu ditutup di revisi PRD berikutnya — bukan didiamkan atau diberi ID baru secara sepihak.
+> **Prinsip acuan:** Setiap ID (FR-xx, NFR-xx, AC-x.x) yang dirujuk di dokumen ini **harus sudah terdefinisi** di `02_ProductRequirementDocument.md`. Jika FRD membutuhkan fitur yang belum punya ID PRD, hal itu dicatat eksplisit sebagai gap yang perlu ditutup di revisi PRD berikutnya — bukan didiamkan atau diberi ID baru secara sepihak (lihat riwayat penutupan gap Modul 7 pada Riwayat Revisi v1.2 sebagai contoh penerapannya).
 
 ---
 
@@ -55,12 +56,11 @@ Berikut adalah daftar seluruh fitur teknis beserta modul dan ID relasinya terhad
 │ 5. In-Room Web Control  │ FEAT-CTL-01, FEAT-CTL-02     │ FR-05              │
 │ 6. Cloud Video Vault    │ FEAT-VLT-01                  │ FR-06              │
 │                         │ FEAT-VLT-02                  │ FR-07              │
-│ 7. User & Access Mgmt   │ FEAT-USR-01, FEAT-USR-02     │ NFR-S03 (gap PRD*) │
+│ 7. User & Access Mgmt   │ FEAT-USR-01, FEAT-USR-02     │ FR-09              │
 └─────────────────────────┴──────────────────────────────┴────────────────────┘
-* Belum ada FR khusus User & Access Management di PRD — lihat catatan Bagian 2.7.
 ```
 
-> **Koreksi traceability:** Pada draf sebelumnya, FEAT-PAY-02 (Subscription Quota Deduction) salah ditelusuri ke FR-03, padahal secara isi ia menjalankan **FR-08 (Manajemen Kuota)** di PRD. Modul 7 (User & Access Mgmt) sebelumnya ikut memakai ID FR-08 yang sama — bentrok dengan FEAT-PAY-02. Karena PRD tidak memiliki FR eksplisit untuk User & Access Management, modul ini ditelusuri sementara ke **NFR-S03 (Authentication)**; direkomendasikan PRD ditambahkan FR baru (mis. FR-09) pada revisi berikutnya agar traceability lengkap.
+> **Koreksi traceability:** Pada draf sebelumnya, FEAT-PAY-02 (Subscription Quota Deduction) salah ditelusuri ke FR-03, padahal secara isi ia menjalankan **FR-08 (Manajemen Kuota)** di PRD. Modul 7 (User & Access Mgmt) sebelumnya ikut memakai ID FR-08 yang sama — bentrok dengan FEAT-PAY-02 — lalu sempat ditelusuri sementara ke NFR-S03 sebagai *gap* karena PRD belum punya FR khusus. **Gap ini sudah tertutup:** PRD v1.2 menambahkan **FR-09 (Manajemen Akun & Autentikasi Pengguna)**, sehingga Modul 7 kini ditelusuri resmi ke FR-09 (NFR-S03 tetap berlaku sebagai kebutuhan keamanan pendukungnya).
 
 ### 2.1 Modul 1: Katalog & Pencarian Ruangan (Catalog & Discovery)
 * **FEAT-CAT-01 (Real-Time Availability Grid):** Display kalender interaktif per jam untuk melihat status keterisian ruangan (Tersedia, Terkunci, Tersewa, Maintenance).
@@ -89,10 +89,10 @@ Berikut adalah daftar seluruh fitur teknis beserta modul dan ID relasinya terhad
 
 ### 2.7 Modul 7: User & Access Management
 
-> Modul ini tercantum di Feature Module Matrix namun belum pernah dijelaskan pada draf sebelumnya. Karena `02_ProductRequirementDocument.md` belum memiliki FR eksplisit untuk registrasi/akun pengguna, detail di bawah ini diturunkan dari kebutuhan implisit **NFR-S03 (Authentication)** dan dari aktor-aktor yang muncul di Role Management (Bagian 4).
+> Modul ini sebelumnya tercantum di Feature Module Matrix tanpa FR resmi di PRD. Sejak PRD v1.2 menambahkan **FR-09 (Manajemen Akun & Autentikasi Pengguna)**, detail di bawah ini resmi menjadi turunan FR-09 — dengan **NFR-S03 (Authentication)** tetap berlaku sebagai kebutuhan keamanan pendukungnya.
 
-* **FEAT-USR-01 (Registrasi & Autentikasi):** Registrasi akun via email/nomor HP, login menggunakan OAuth 2.0 / JWT (sesuai NFR-S03), termasuk alur *forgot password* dan verifikasi akun.
-* **FEAT-USR-02 (Role & Profile Management):** Manajemen profil pengguna (nama, institusi, nomor HP untuk validasi `user_phone`) serta penetapan role (`Member`, `Premium Member`, `Studio Admin`, `Super Admin`) sesuai matriks RBAC pada Bagian 4. Perubahan status ke `Premium Member` terjadi otomatis saat pengguna berlangganan salah satu tier Subscription (Basic/Pro/Enterprise, lihat PD §8).
+* **FEAT-USR-01 (Registrasi & Autentikasi)** *(FR-09)*: Registrasi akun via email/nomor HP, login menggunakan OAuth 2.0 / JWT (sesuai NFR-S03), termasuk alur *forgot password* dan verifikasi akun.
+* **FEAT-USR-02 (Role & Profile Management)** *(FR-09)*: Manajemen profil pengguna (nama, institusi, nomor HP untuk validasi `user_phone`) serta penetapan role (`Member`, `Premium Member`, `Studio Admin`, `Super Admin`) sesuai matriks RBAC pada Bagian 4. Perubahan status ke `Premium Member` terjadi otomatis saat pengguna berlangganan salah satu tier Subscription (Basic/Pro/Enterprise, lihat PD §8).
 
 ---
 

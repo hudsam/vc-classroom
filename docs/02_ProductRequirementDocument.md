@@ -1,5 +1,5 @@
 # Product Requirement Document (PRD): Platform Sewa Smart Classroom
-**Versi:** 1.1  
+**Versi:** 1.2  
 **Tanggal:** 8 Agustus 2026  
 **Penulis:** Senior Product Manager  
 **Target Audiens:** Stakeholder Bisnis, UI/UX Designer, Software Engineer (Frontend/Backend), Quality Assurance (QA)  
@@ -13,10 +13,12 @@
 | 1.1 | Executive Summary (1) | Menjabarkan ulang visi & value proposition yang sudah ada di Product Discovery. | Dipersingkat dan ditambahkan rujukan eksplisit ke `01_ProductDiscovery.md` untuk konteks strategi, agar tidak ada duplikasi narasi antar dokumen. |
 | 1.1 | Business Goals (2.2) | Target konversi subscription tidak dikaitkan ke tier harga mana pun. | Ditambahkan rujukan ke tier Subscription pada Business Model (PD §8) agar target bisnis & struktur harga tetap konsisten. |
 | 1.1 | Scope & Out of Scope (3) | Tidak ada keterkaitan eksplisit ke fase roadmap. | Ditambahkan rujukan ke fase "Q3 2026: Foundation & MVP" pada Product Roadmap (PD §9). |
-| 1.1 | Non-Functional Requirements (5) | Butir NFR tidak memiliki ID individual, hanya dikelompokkan per subbagian (5.1/5.2/5.3); terdapat typo "Kesediafasilitasan". | Ditambahkan ID unik per butir (NFR-P01 dst.) agar dapat dirujuk presisi dari Success Metrics dan dokumen turunan lain; ditambahkan NFR-P04 (Video Processing Time) yang sebelumnya tidak terdefinisi meski dirujuk Success Metrics; typo diperbaiki menjadi "Ketersediaan". |
-| 1.1 | Success Metrics (6) | Kolom "Poin Kontribusi PRD" merujuk subbagian umum (mis. "NFR-5.1", "NFR-5.3") yang berisi beberapa butir sekaligus. | Diperbarui merujuk ID NFR spesifik (mis. "NFR-P03", "NFR-P04") hasil perbaikan Bagian 5. |
-| 1.1 | Product Milestones & Release Plan (9) | Tanggal "IoT Smart Lock Integration" & "Payment Gateway Integration" tidak sinkron dengan Product Roadmap PD §9 (selisih hingga 2 minggu); task "AI Transcription" digabung dengan "In-Room Controller" padahal di PD keduanya terpisah. | Tanggal disamakan dengan PD §9 dan task dipisah agar strukturnya identik; ditambahkan catatan sinkronisasi. |
-| 1.1 | Keterkaitan Antar Dokumen (10 - baru) | Belum ada panduan kepemilikan topik antar dokumen maupun antisipasi redundansi ke depan. | Ditambahkan bagian baru berisi tabel *source of truth* per topik serta rekomendasi anti-redundansi jangka pendek, menengah, dan panjang. |
+| 1.2 | Non-Functional Requirements (5) | Butir NFR tidak memiliki ID individual, hanya dikelompokkan per subbagian (5.1/5.2/5.3); terdapat typo "Kesediafasilitasan". | Ditambahkan ID unik per butir (NFR-P01 dst.) agar dapat dirujuk presisi dari Success Metrics dan dokumen turunan lain (FRD sudah menunggu ID ini — lihat `docs/A_AnalysisSummary.md` Temuan #1); ditambahkan NFR-P04 (Video Processing Time) yang sebelumnya tidak terdefinisi meski dirujuk Success Metrics; typo diperbaiki menjadi "Ketersediaan". |
+| 1.2 | Success Metrics (6) | Kolom "Poin Kontribusi PRD" merujuk subbagian umum (mis. "NFR-5.1", "NFR-5.3") yang berisi beberapa butir sekaligus. | Diperbarui merujuk ID NFR spesifik (mis. "NFR-P03", "NFR-P04") hasil perbaikan Bagian 5. |
+| 1.2 | Functional Requirements (4) | Tidak ada FR resmi untuk **User & Access Management** — FRD §2.7 terpaksa menelusuri fitur akun/otentikasi ke NFR-S03 sebagai *gap* sementara. | Ditambahkan **FR-09 (Manajemen Akun & Autentikasi Pengguna)**. FRD ditelusuri ulang ke FR-09 ini pada revisi FRD berikutnya, menutup gap traceability (lihat `docs/A_AnalysisSummary.md` Temuan #3). |
+| 1.2 | Scope (3.1) | Tidak menyebut fitur akun/registrasi pengguna meski jadi fondasi seluruh fitur lain. | Ditambahkan bullet "Manajemen Akun & Autentikasi Pengguna" agar selaras dengan FR-09 yang baru. |
+| 1.2 | Product Milestones & Release Plan (9) | Tanggal "IoT Smart Lock Integration" & "Payment Gateway Integration" tidak sinkron dengan Product Roadmap PD §9 (selisih hingga 2 minggu); task "AI Transcription" digabung dengan "In-Room Controller" padahal di PD keduanya terpisah. | Tanggal disamakan dengan PD §9 dan task dipisah agar strukturnya identik; ditambahkan catatan sinkronisasi. |
+| 1.2 | Keterkaitan Antar Dokumen (10 - baru) | Belum ada panduan kepemilikan topik antar dokumen maupun antisipasi redundansi ke depan. | Ditambahkan bagian baru berisi tabel *source of truth* per topik serta rekomendasi anti-redundansi jangka pendek, menengah, dan panjang. |
 
 ---
 
@@ -54,6 +56,7 @@ PRD ini bertindak sebagai panduan eksekusi teknis bagi tim lintas fungsi guna me
 ├────────────────────────────────────────┬────────────────────────────────────┤
 │               IN-SCOPE                 │          OUT-OF-SCOPE              │
 ├────────────────────────────────────────┼────────────────────────────────────┤
+│ • User Account & Authentication        │                                    │
 │ • Web Application (Responsive)         │ • Native Mobile Apps (iOS/Android) │
 │ • Self-Service Booking & Payment       │ • Pengadaan/Manufaktur Hardware.   │
 │ • Smart Lock Integration (MQTT/REST)   │ • Integrasi LMS Kustom Enterprise. │
@@ -65,6 +68,7 @@ PRD ini bertindak sebagai panduan eksekusi teknis bagi tim lintas fungsi guna me
 > **Rujukan:** Cakupan pada bagian ini merepresentasikan fase **"Q3 2026: Foundation & MVP"** pada Product Roadmap (`01_ProductDiscovery.md` §9). Jika fase roadmap berubah, Scope & Out of Scope ini wajib ditinjau ulang agar tidak terjadi drift antar dokumen.
 
 ### 3.1 Scope (Dalam Lingkup)
+* **Manajemen Akun & Autentikasi Pengguna:** Registrasi, login, dan profil pengguna sebagai fondasi seluruh fitur lain (lihat FR-09).
 * **Web Application (Responsive):** Modul Katalog Ruangan, *Real-time Availability Calendar*, *Checkout*, dan *User Video Vault*.
 * **Sistem Pembayaran Terintegrasi:** Payment Gateway untuk Virtual Account & E-Wallet (*pay-per-use*).
 * **Integrasi IoT Smart Lock:** Generator QR Code / PIN Digital yang terhubung otomatis ke perangkat *Smart Lock* pintu kelas.
@@ -91,24 +95,28 @@ PRD ini bertindak sebagai panduan eksekusi teknis bagi tim lintas fungsi guna me
 | **FR-06** | **Penyimpanan Cloud** | Video hasil rekaman harus terpotong secara otomatis begitu sesi berakhir dan langsung diunggah ke pustaka digital (*Video Vault*) akun pengguna. | High (Must Have) |
 | **FR-07** | **AI Transkripsi** | Sistem harus memproses file audio rekaman menjadi dokumen transkripsi teks (.srt / .pdf) menggunakan AI Speech-to-Text. | Medium (Should Have) |
 | **FR-08** | **Manajemen Kuota** | Sistem harus mendukung penggunaan kuota jam sewa bulanan bagi pengguna berstatus *Subscription Membership*. | Medium (Should Have) |
+| **FR-09** | **Manajemen Akun & Autentikasi Pengguna** | Sistem harus menyediakan registrasi akun (email/nomor HP), login menggunakan OAuth 2.0/JWT, manajemen profil, dan pemberian role (Member/Premium Member) yang otomatis mengikuti status subscription pengguna. | High (Must Have) |
+
+> **Catatan traceability:** FR-09 ditambahkan pada v1.2 untuk menutup gap yang ditemukan `03_FunctionalRequirementDocument.md` §2.7 (Modul User & Access Management) — sebelumnya modul tersebut tidak punya FR resmi dan sementara ditelusuri ke NFR-S03 (Authentication). Detail teknis registrasi/login tetap tunduk pada NFR-S03 untuk aspek keamanannya.
 
 ---
 
 ## 5. Non-Functional Requirements (NFR)
 
 ### 5.1 Performa & Skalabilitas (Performance & Scalability)
-* **Response Time:** Loading halaman web katalog dan reservasi tidak boleh melebihi 2 detik pada jaringan 4G/WiFi standar (PageSpeed Score > 85).
-* **Concurrency:** Sistem *booking engine* harus mampu menangani minimal 500 pengguna aktif yang melakukan pemesanan secara bersamaan tanpa mengalami *race condition*.
-* **IoT Latency:** Latensi pengiriman perintah pembukaan pintu dari server ke *Smart Lock* tidak boleh lebih dari 3 detik.
+* **NFR-P01 (Response Time):** Loading halaman web katalog dan reservasi tidak boleh melebihi 2 detik pada jaringan 4G/WiFi standar (PageSpeed Score > 85).
+* **NFR-P02 (Concurrency):** Sistem *booking engine* harus mampu menangani minimal 500 pengguna aktif yang melakukan pemesanan secara bersamaan tanpa mengalami *race condition*.
+* **NFR-P03 (IoT Latency):** Latensi pengiriman perintah pembukaan pintu dari server ke *Smart Lock* tidak boleh lebih dari 3 detik.
+* **NFR-P04 (Video Processing Time):** Pemrosesan & auto-upload video ke Cloud Storage tidak boleh melebihi 15 menit pasca sesi berakhir (mendukung FR-06 dan metrik "Video Auto-Sync Time" pada Bagian 6).
 
 ### 5.2 Keamanan & Akses (Security & Compliance)
-* **Akses Fisik Terbatas:** Token QR Code/PIN bersifat dinamis (*time-bound*) dan kadaluarsa secara otomatis setelah durasi sewa usai.
-* **Data Encryption:** Seluruh enkripsi data lalu lintas menggunakan HTTPS/TLS 1.3 dan enkripsi file rekaman di *Cloud Storage* menggunakan AES-256.
-* **Authentication:** Menggunakan standar OAuth 2.0 / JWT untuk otentikasi sesi akun pengguna.
+* **NFR-S01 (Akses Fisik Terbatas):** Token QR Code/PIN bersifat dinamis (*time-bound*) dan kadaluarsa secara otomatis setelah durasi sewa usai.
+* **NFR-S02 (Data Encryption):** Seluruh enkripsi data lalu lintas menggunakan HTTPS/TLS 1.3 dan enkripsi file rekaman di *Cloud Storage* menggunakan AES-256.
+* **NFR-S03 (Authentication):** Menggunakan standar OAuth 2.0 / JWT untuk otentikasi sesi akun pengguna (mendukung FR-09).
 
-### 5.3 Keandalan & Kesediafasilitasan (Reliability & Availability)
-* **System Uptime:** Platform web dan API gateway harus memiliki *uptime* minimal 99.5% per bulan.
-* **Local Caching (Fail-safe):** Apabila jaringan internet di lokasi kelas terputus saat proses pengajaran, rekaman harus tetap tersimpan pada *local storage device* di dalam kelas dan melakukan *auto-resync* ke Cloud saat koneksi pulih.
+### 5.3 Keandalan & Ketersediaan (Reliability & Availability)
+* **NFR-R01 (System Uptime):** Platform web dan API gateway harus memiliki *uptime* minimal 99.5% per bulan.
+* **NFR-R02 (Local Caching / Fail-safe):** Apabila jaringan internet di lokasi kelas terputus saat proses pengajaran, rekaman harus tetap tersimpan pada *local storage device* di dalam kelas dan melakukan *auto-resync* ke Cloud saat koneksi pulih.
 
 ---
 
@@ -116,9 +124,9 @@ PRD ini bertindak sebagai panduan eksekusi teknis bagi tim lintas fungsi guna me
 
 | Kategori | Nama Metrik | Target Nilai / Milestone | Poin Kontribusi PRD |
 | :--- | :--- | :--- | :--- |
-| **Operational** | **Success Access Rate** | > 99% sukses pembukaan pintu via QR/PIN tanpa bantuan manual | FR-04, NFR-5.1 |
+| **Operational** | **Success Access Rate** | > 99% sukses pembukaan pintu via QR/PIN tanpa bantuan manual | FR-04, NFR-P03 |
 | **User Experience** | **Booking Completion Rate** | > 75% pengguna yang memulai *checkout* berhasil menyelesaikan pembayaran | FR-02, FR-03 |
-| **Product Quality** | **Video Auto-Sync Time** | < 15 menit durasi pemrosesan hingga video siap diunduh | FR-06, NFR-5.3 |
+| **Product Quality** | **Video Auto-Sync Time** | < 15 menit durasi pemrosesan hingga video siap diunduh | FR-06, NFR-P04, NFR-R02 |
 | **Business Impact** | **Classroom Utilization Rate**| Minimal 30% tingkat keterisian jam sewa ruangan per bulan | FR-01, FR-08 |
 
 ---
@@ -182,8 +190,8 @@ gantt
     section Sprint Phase 1: MVP Core
     Requirement Sign-Off & UX Design     :active, p1, 2026-08-10, 2026-08-25
     Backend Core & Booking Engine Dev    :p2, 2026-08-20, 2026-09-15
-    IoT Smart Lock Integration           :p3, 2026-09-01, 2026-09-30
-    Payment Gateway Integration          :p4, 2026-09-10, 2026-10-05
+    IoT Smart Lock Integration           :p3, 2026-08-15, 2026-09-30
+    Payment Gateway Integration          :p4, 2026-08-15, 2026-09-15
 
     section Sprint Phase 2: Testing & Beta Launch
     System Integration & QA Testing      :t1, 2026-10-01, 2026-10-15
@@ -191,8 +199,44 @@ gantt
     Post-Launch Monitoring & Fixes       :t2, 2026-10-16, 2026-10-31
 
     section Sprint Phase 3: AI & Optimization
-    In-Room Controller & AI Transcription :a1, 2026-11-01, 2026-12-15
+    In-Room Web Controller Dashboard     :a1, 2026-11-01, 2026-12-15
+    AI Auto-Captioning & Transcription   :a1b, 2026-11-15, 2026-12-31
     Subscription Wallet & Rollout        :a2, 2026-12-01, 2027-01-15
 ```
+
+> **Catatan sinkronisasi:** Milestone di atas adalah breakdown level-sprint dari **Product Roadmap** kuartalan pada `01_ProductDiscovery.md` §9. Tanggal "IoT Smart Lock Integration" dan "Payment Gateway Integration" telah disamakan dengan PD (sebelumnya berbeda hingga 2 minggu), dan task "AI Transcription" dipisah dari "In-Room Controller" agar strukturnya identik dengan PD. **Setiap perubahan tanggal di salah satu dokumen wajib disinkronkan ke dokumen lainnya** — lihat Bagian 10.
+
+---
+
+## 10. Keterkaitan Antar Dokumen & Strategi Anti-Redundansi
+
+PRD ini akan menjadi **sumber utama** bagi tahap pengembangan berikutnya (desain teknis, backlog, pengujian). Bagian ini memetakan pembagian tanggung jawab antar dokumen agar tidak terjadi duplikasi konten yang berisiko saling bertentangan seiring produk berkembang.
+
+### 10.1 Pembagian Kepemilikan Topik (Source of Truth)
+
+| Topik | Dokumen Pemilik (Source of Truth) | Peran PRD Ini |
+| :--- | :--- | :--- |
+| Visi produk, misi, value proposition | `01_ProductDiscovery.md` (PD) §2-3 | Merujuk, tidak mengulang (lihat Bagian 1). |
+| Persona, pain point, goals, JTBD | PD §4-5 | Diturunkan menjadi User Stories (Bagian 7). |
+| Model bisnis & strategi harga | PD §8 | Business Goals (Bagian 2.2) merujuk, tidak mendefinisikan ulang. |
+| Roadmap kuartalan (arah strategis) | PD §9 | Product Milestones (Bagian 9) adalah breakdown level-sprint dari roadmap ini. |
+| Functional & Non-Functional Requirements (termasuk FR-09 Akun/Autentikasi) | **PRD ini** (Bagian 4-5) | Sumber tunggal — dokumen turunan (FRD, Technical Design, Test Plan) wajib merujuk ID FR-xx/NFR-xx, bukan menulis ulang. |
+| Acceptance Criteria & User Stories | **PRD ini** (Bagian 7) | Sumber tunggal untuk pembuatan test case QA. |
+| Success Metrics/KPI teknis | **PRD ini** (Bagian 6) | Sumber tunggal untuk dashboard analytics ke depan. |
+
+### 10.2 Jangka Pendek — Selama Pengembangan MVP (Q3-Q4 2026)
+* **Larangan duplikasi narasi:** Executive Summary, visi, dan model bisnis di PRD hanya boleh berupa rujukan singkat ke PD, tidak menulis ulang narasi lengkap (sudah diterapkan pada Bagian 1 & 2.2 versi ini).
+* **Gunakan ID sebagai bahasa bersama:** Setiap diskusi teknis (tiket, pull request, dokumen desain) merujuk ID FR-xx/NFR-xx/AC-x.x, bukan deskripsi bebas, agar dapat ditelusuri ke satu sumber definisi.
+* **Sinkronisasi roadmap wajib per perubahan:** Selama PD §9 dan PRD §9 masih berupa dua diagram Gantt terpisah, setiap perubahan tanggal pada salah satu dokumen harus disertai pembaruan pada dokumen lain dalam PR/commit yang sama; reviewer wajib mengecek konsistensi ini sebelum merge.
+
+### 10.3 Jangka Menengah — Pasca-Beta Launch (Q4 2026 - Q1 2027)
+* **Bangun Traceability Matrix terpusat:** satu tabel yang memetakan Persona → JTBD → FR → AC → Test Case → Metric, sehingga dampak perubahan pada satu elemen langsung terlihat tanpa membaca ulang seluruh dokumen.
+* **Tetapkan pemicu review lintas dokumen:** perubahan pada PD §8 (Business Model) atau §9 (Roadmap) memicu checklist review terhadap PRD §2.2 (Business Goals) dan §9 (Milestones), dan sebaliknya.
+* **Evaluasi konsolidasi roadmap:** jika drift tanggal antara PD §9 dan PRD §9 terus berulang, pertimbangkan menjadikan PRD §9 sebagai satu-satunya sumber level eksekusi, dan menyederhanakan PD §9 menjadi ringkasan fase per kuartal tanpa tanggal detail.
+
+### 10.4 Jangka Panjang — Multi-Lokasi & Integrasi LMS (Q1 2027+)
+* **PRD ini menjadi source of truth teknis untuk dokumen turunan baru** (Technical Design Doc, API Spec, Sprint Backlog, Test Plan) — dokumen tersebut wajib mereferensikan ID FR/NFR/AC di sini, bukan mendefinisikan ulang kebutuhan yang sama dengan kata-kata berbeda.
+* **Pertimbangkan tooling anti-drift:** pada skala multi-lokasi, redundansi manual antar dokumen markdown akan sulit dijaga konsistensinya. Evaluasi pemindahan Roadmap & Success Metrics ke tool tracking terpusat (mis. Jira/Linear roadmap view) yang di-embed/di-link dari kedua dokumen, alih-alih dua Gantt statis terpisah.
+* **Buat indeks dokumen (`docs/README.md`):** saat jumlah dokumen turunan bertambah (Technical Design, Test Plan, Analytics Plan, dst.), buat satu halaman indeks yang memetakan setiap dokumen ke topik tanggung jawabnya, mengikuti pola tabel Bagian 10.1 — agar kontributor baru tidak menulis ulang konten yang sudah ada di dokumen lain.
 
 ---

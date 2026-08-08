@@ -1,5 +1,5 @@
 # Information Architecture (IA) Document: Platform Sewa Smart Classroom
-**Versi:** 1.0  
+**Versi:** 1.1  
 **Tanggal:** 8 Agustus 2026  
 **Penulis:** Senior Product Manager  
 **Target Audiens:** UI/UX Designer, Frontend Engineer, Lead Software Engineer, Product Manager, System Architect  
