@@ -4,7 +4,21 @@
 **Tanggal:** 8 Agustus 2026  
 **Target Audiens:** Stakeholder Bisnis, UI/UX Designer, Software Engineer (Frontend/Backend), Quality Assurance (QA)  
 
-**Riwayat Revisi v1.1:** Memperjelas dan memperkuat traceability pada Problem Statement, Solusi, Value Proposition Canvas, Target User Persona, Jobs to be Done, Competitor Analysis, SWOT Analysis, Business Model & Monetization Strategy, Product Vision, dan Product Roadmap — termasuk perbaikan typo dan satu inkonsistensi jadwal (Payment Gateway) pada roadmap.
+### Riwayat Revisi
+
+| Versi | Bagian | Sebelum | Sesudah |
+| :--- | :--- | :--- | :--- |
+| 1.0 | Dokumen (keseluruhan) | — | Draf awal dokumen product discovery. |
+| 1.1 | Product Vision (2) | Hanya kutipan visi dalam Bahasa Inggris. | Ditambahkan terjemahan bebas dalam Bahasa Indonesia agar mudah dipahami semua pembaca. |
+| 1.1 | Problem Statement (3.1) | Daftar 3 poin masalah tanpa ID dan tanpa keterangan pihak terdampak/dampak. | Diubah menjadi tabel dengan ID (P1-P3), kolom "Siapa Paling Terdampak" & "Dampak Jika Tidak Diatasi", ditambah catatan bahwa data masih kualitatif dan perlu riset pasar. |
+| 1.1 | Solusi Produk (3.2) | 3 solusi dijabarkan tanpa keterkaitan eksplisit ke problem statement; terdapat typo "dashbord". | Setiap solusi ditandai relasi ke ID problem terkait (mis. "menjawab P1, P3"); typo "dashbord" diperbaiki menjadi "dashboard". |
+| 1.1 | Value Proposition Canvas (3.3) | Gain Creators, Pain Relievers, Gains, dan Pains ditulis sebagai daftar lepas tanpa keterkaitan satu sama lain. | Dipecah menjadi dua tabel pemetaan 1:1: "Pain → Pain Reliever" dan "Gain → Gain Creator". |
+| 1.1 | Target User Persona (4) | Tidak ada keterangan JTBD mana yang relevan untuk masing-masing persona. | Ditambahkan baris "Terkait JTBD" pada setiap dari 3 persona. |
+| 1.1 | Jobs to be Done (5) | Hanya berisi 3 JTBD tanpa rangkuman keterkaitan ke persona/pain point/goal. | Ditambahkan subbagian 5.1: tabel pemetaan Persona → Pain Point Utama → Goal Utama → JTBD Terkait. |
+| 1.1 | Competitor Analysis (6) | Tabel kompetitor memiliki typo "Kunci Kunci Manual"; tidak ada kesimpulan analisis. | Typo diperbaiki menjadi "Kunci Manual"; ditambahkan subbagian "Insight Kompetitif" berisi positioning terhadap tiap kompetitor dan celah pasar. |
+| 1.1 | SWOT Analysis (7) | 4 kuadran (Strength, Weakness, Opportunity, Threat) berdiri sendiri tanpa rekomendasi tindak lanjut. | Ditambahkan subbagian "Implikasi Strategis" (S→O, S→T, W→O, W→T) yang menerjemahkan tiap kuadran menjadi arah strategi konkret. |
+| 1.1 | Business Model & Monetization (8) | Strategi monetisasi (Pay-per-use, Subscription, Add-on) dijabarkan tanpa target persona & tanpa disclaimer harga. | Setiap tier subscription dikaitkan ke persona target; ditambahkan catatan bahwa harga masih indikatif dan kebijakan refund perlu dirumuskan. |
+| 1.1 | Product Roadmap (9) | "Payment Gateway Integration" dijadwalkan Q4 2026 — tidak konsisten karena MVP/Beta Launch di Q3 2026 sudah membutuhkan pembayaran. | Integrasi payment dasar (E-Wallet/VA) dipindahkan ke Q3 2026 selaras dengan MVP; fitur wallet & kuota bulanan tetap di Q4 2026, ditambah catatan perbaikan di bawah diagram. |
 
 ---
 
