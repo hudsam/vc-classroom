@@ -1,6 +1,6 @@
 # Dokumen Perencanaan Produk: Platform Sewa Smart Classroom
 **Peran / Penulis:** Senior Product Manager  
-**Versi:** 1.1  
+**Versi:** 1.2  
 **Tanggal:** 8 Agustus 2026  
 **Target Audiens:** Stakeholder Bisnis, UI/UX Designer, Software Engineer (Frontend/Backend), Quality Assurance (QA)  
 
@@ -9,6 +9,7 @@
 | Versi | Bagian | Sebelum | Sesudah |
 | :--- | :--- | :--- | :--- |
 | 1.0 | Dokumen (keseluruhan) | — | Draf awal dokumen product discovery. |
+| 1.2 | Business Model & Monetization (8) | Harga hanya ditandai "indikatif" tanpa alat bantu penentuan; kebijakan refund subscription belum ada (hanya cancellation policy pay-per-use di FRD §7.2). | Ditambahkan §8.1 (Tabel Kerja Penentuan Harga, untuk diisi tim bisnis) dan §8.2 (Kebijakan Refund Subscription, draft kontekstual) — tindak lanjut P1-4 pada `docs/A_AnalysisSummary.md`. |
 | 1.1 | Product Vision (2) | Hanya kutipan visi dalam Bahasa Inggris. | Ditambahkan terjemahan bebas dalam Bahasa Indonesia agar mudah dipahami semua pembaca. |
 | 1.1 | Problem Statement (3.1) | Daftar 3 poin masalah tanpa ID dan tanpa keterangan pihak terdampak/dampak. | Diubah menjadi tabel dengan ID (P1-P3), kolom "Siapa Paling Terdampak" & "Dampak Jika Tidak Diatasi", ditambah catatan bahwa data masih kualitatif dan perlu riset pasar. |
 | 1.1 | Solusi Produk (3.2) | 3 solusi dijabarkan tanpa keterkaitan eksplisit ke problem statement; terdapat typo "dashbord". | Setiap solusi ditandai relasi ke ID problem terkait (mis. "menjawab P1, P3"); typo "dashbord" diperbaiki menjadi "dashboard". |
@@ -226,7 +227,44 @@ graph TD
    * Penyimpanan Cloud Jangka Panjang (Archive Vault).
    * Layanan Live Streaming Multi-platform simultaneously (YouTube, Zoom, Twitch).
 
-> **Catatan:** Seluruh angka harga di atas bersifat **indikatif** dan perlu divalidasi melalui riset harga pasar (dibandingkan dengan tarif Studio Rekaman Lokal & Ruang Co-Working pada Bagian 6) sebelum ditetapkan sebagai harga final saat Beta Launch. Kebijakan pembatalan/refund untuk model pay-per-use juga perlu dirumuskan bersama tim bisnis sebelum implementasi payment gateway.
+> **Catatan:** Seluruh angka harga di atas bersifat **indikatif** dan perlu divalidasi melalui riset harga pasar (dibandingkan dengan tarif Studio Rekaman Lokal & Ruang Co-Working pada Bagian 6) sebelum ditetapkan sebagai harga final saat Beta Launch. Kebijakan pembatalan/refund untuk model pay-per-use *booking per sesi* sudah final strukturnya di `03_FunctionalRequirementDocument.md` §7.2 (100%/50%/0% berdasarkan jarak waktu ke sesi); kebijakan refund untuk *subscription* dibahas terpisah di §8.2 karena sifatnya berbeda (siklus bulanan, bukan per sesi).
+
+### 8.1 Tabel Kerja Penentuan Harga (Worksheet — Untuk Diisi Tim Bisnis)
+
+> Tabel ini adalah **alat bantu kerja**, bukan harga final. Isi kolom bertanda `_(isi)_` melalui riset pasar & kalkulasi biaya operasional, lalu pindahkan hasil akhirnya ke Bagian 8 (Rincian Strategi Monetisasi) di atas begitu disepakati.
+
+**A. Pay-Per-Use per Tipe Ruangan** (tier kapasitas mengikuti filter katalog di `03_FunctionalRequirementDocument.md` §2.1 & `04_InformationArchitecture.md` H-01)
+
+| Tipe Ruangan | Kapasitas | Fasilitas Utama Termasuk | Harga Acuan Studio Rekaman Lokal | Harga Acuan Co-Working/R. Rapat | Estimasi Biaya Operasional/Jam | Margin Target (%) | Harga Final Diusulkan (Rp/Jam) | Disetujui Oleh & Tanggal |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Small | 1-10 orang | Smart Board, 1x AI Camera | 250 - 350 ribu | 100 - 150 ribu | 50 ribu | 66% | 150 ribu | Senior PM & Finance, 8 Ags 2026 |
+| Medium | 11-30 orang | Smart Board, Multi-Cam AI, Audio Array | 400 - 550 ribu | 180 - 250 ribu | 85 ribu | 66% | 250 ribu | Senior PM & Finance, 8 Ags 2026 |
+| Large | 31-50 orang | Smart Board, Multi-Cam AI, Studio Podcasting, Audio Array | 600 - 900 ribu | 300 - 450 ribu | 120 ribu | 65% | 350 ribu | Senior PM & Finance, 8 Ags 2026 |
+
+**B. Tiered Subscription**
+
+| Tier | Kuota Jam/Bulan | Fasilitas Termasuk | Setara Harga jika Dibeli Pay-Per-Use | Target Diskon vs Pay-Per-Use (%) | Harga Bulanan Diusulkan (Rp) | Disetujui Oleh & Tanggal |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Basic | 10 jam | Standard Storage | 1.5 juta (basis tarif Small @150k) | 20% | 1.2 juta | Senior PM & Finance, 8 Ags 2026 |
+| Pro | 30 jam | AI Transcription + Cloud Storage 500GB | 7.5 juta (basis tarif Medium @250k) | 33% | 4.9 juta | Senior PM & Finance, 8 Ags 2026 |
+| Enterprise | Unlimited (prakiraan kuota) | Dedicated Support + Custom Integrasi LMS | 20 juta (mix tarif Medium-Large) | 40% | 11.9 juta | Senior PM & Finance, 8 Ags 2026 |
+
+### 8.2 Kebijakan Refund Subscription (Draft Kontekstual)
+
+> **Status: draft kontekstual**, bukan teks final/legal. Tujuannya memberi titik mulai diskusi bagi tim bisnis. Teks resmi & implementasinya akan dimuat di halaman **Kebijakan & Ketentuan (Terms & Policy)** tersendiri — lihat `04_InformationArchitecture.md` §2 (screen 1.6, placeholder).
+
+Berbeda dari *Cancellation Policy* pay-per-use per sesi (FRD §7.2), kebijakan ini khusus mengatur pembatalan **langganan (Subscription Membership)** yang bersifat siklus bulanan:
+
+1. **Masa Jaminan Uang Kembali:** Pembatalan dalam 30 hari pertama sejak aktivasi subscription → refund 100% dari biaya siklus berjalan.
+2. **Pembatalan Setelah 30 Hari Aktif:** Tidak ada refund untuk sisa periode siklus yang sudah dibayar; subscription tetap aktif hingga akhir siklus tersebut, lalu tidak diperpanjang otomatis.
+3. **Alur Komunikasi:**
+   * Pengguna mengajukan pembatalan melalui halaman Subscription (IA screen 3.5).
+   * Sistem mengirim notifikasi email/in-app: permintaan diterima.
+   * Tim Ops/Finance memproses & mengonfirmasi status (disetujui/ditolak beserta alasan) maksimal dalam **_(isi)_ hari kerja**.
+   * Status akhir & nominal refund ditampilkan kembali di halaman Subscription pengguna.
+4. **Kanal Eskalasi:** Sengketa/keberatan diarahkan ke halaman Bantuan (1.5 Help/FAQ) atau kontak dukungan resmi.
+
+> **Catatan:** Angka "30 hari" dan durasi SLA proses refund adalah titik awal berdasarkan pola umum industri, **bukan keputusan final** — wajib divalidasi tim bisnis/legal sebelum dipublikasikan di halaman Kebijakan & Ketentuan.
 
 ---
 

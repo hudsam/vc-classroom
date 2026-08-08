@@ -1,5 +1,5 @@
 # Functional Requirement Document (FRD): Platform Sewa Smart Classroom
-**Versi:** 1.2  
+**Versi:** 1.3  
 **Tanggal:** 8 Agustus 2026  
 **Penulis:** Senior Product Manager  
 **Target Audiens:** Lead Software Engineer (Frontend/Backend), IoT Integration Engineer, UI/UX Designer, QA Automation, System Architect  
@@ -9,7 +9,6 @@
 
 | Versi | Bagian | Sebelum | Sesudah |
 | :--- | :--- | :--- | :--- |
-| 1.2 | Feature Module Matrix (2), Modul 7 (2.7) | Modul 7 (User & Access Mgmt) ditelusuri sementara ke NFR-S03 karena PRD belum punya FR khusus — ditandai sebagai *gap PRD*. | PRD v1.2 menambahkan **FR-09 (Manajemen Akun & Autentikasi Pengguna)**. Traceability Modul 7 diperbarui dari NFR-S03 menjadi FR-09 (NFR-S03 tetap relevan sebagai kebutuhan keamanan pendukung); status "gap PRD" dihapus karena sudah tertutup. |
 | 1.0 | Dokumen (keseluruhan) | — | Draf awal Functional Requirement Document. |
 | 1.1 | Referensi Nama File (1, 6) | Merujuk `02_PRD.md` dan `03_FRD.md`, tidak sesuai nama file sebenarnya. | Diperbaiki menjadi `02_ProductRequirementDocument.md` dan `03_FunctionalRequirementDocument.md` agar tautan antar dokumen valid. |
 | 1.1 | Feature Module Matrix (2) | FEAT-PAY-02 (Subscription Quota Deduction) salah ditelusuri ke FR-03 (Gateway Pembayaran); Modul 7 (User & Access Mgmt) juga ditelusuri ke FR-08 — bentrok dengan FEAT-PAY-02 yang seharusnya memilikinya. Fitur Pembatalan/Refund (Bagian 7.2) tidak punya ID fitur sama sekali. | FEAT-PAY-02 ditelusuri ke FR-08 (sesuai isi PRD: "Manajemen Kuota"); Modul 7 ditelusuri ke NFR-S03 karena PRD belum punya FR khusus untuk User & Access Management (dicatat sebagai gap untuk PRD berikutnya); ditambahkan FEAT-BKG-03 (Cancellation & Refund Engine). |
@@ -21,6 +20,9 @@
 | 1.1 | Data Validation Rules (6) | Tabel memvalidasi field `duration_minutes` yang **tidak ada** pada payload kontrak API riil (kontrak memakai `start_time`/`end_time`); field `end_time`, `add_ons`, dan `action` tidak divalidasi sama sekali. | Baris `duration_minutes` dihapus, digantikan validasi `end_time` + aturan lintas-field (durasi dihitung dari selisih `start_time`-`end_time`); ditambahkan baris `add_ons` dan `action`. |
 | 1.1 | Business Logic Rules (7) | Rule 3 (Late Checkout Penalty) menyebut "sistem mendeteksi kehadiran di kelas" tanpa mekanisme/fitur pendeteksi yang terdefinisi. | Ditambahkan catatan dependency eksplisit bahwa mekanisme deteksi kehadiran belum terdefinisi dan perlu spesifikasi hardware IoT tambahan sebelum rule ini dapat diimplementasikan. |
 | 1.1 | Error Handling & Fail-Safe Matrix (8) | Tidak mencakup error untuk token akses kadaluarsa/invalid (padahal ada di diagram alur 3.2), limit slot lock berlebih (Business Rule 4), kuota subscription habis (FR-08), maupun kegagalan transkripsi AI (FR-07). | Ditambahkan baris TOKEN_EXPIRED_OR_INVALID, MAX_CONCURRENT_LOCKS_EXCEEDED, QUOTA_EXCEEDED, dan TRANSCRIPTION_FAILED. |
+| 1.2 | Feature Module Matrix (2), Modul 7 (2.7) | Modul 7 (User & Access Mgmt) ditelusuri sementara ke NFR-S03 karena PRD belum punya FR khusus — ditandai sebagai *gap PRD*. | PRD v1.2 menambahkan **FR-09 (Manajemen Akun & Autentikasi Pengguna)**. Traceability Modul 7 diperbarui dari NFR-S03 menjadi FR-09 (NFR-S03 tetap relevan sebagai kebutuhan keamanan pendukung); status "gap PRD" dihapus karena sudah tertutup. |
+| 1.3 | Business Logic Rules (7.3) | Late Checkout Penalty mensyaratkan mekanisme deteksi kehadiran (occupancy sensor) yang tidak ada di modul manapun — memblokir implementasi (P0-3 di `docs/A_AnalysisSummary.md`). | **Diputuskan dikeluarkan dari cakupan MVP**: deteksi & penindakan late checkout dilakukan **manual oleh petugas Ops** untuk sementara, bukan otomatis via sensor. Dependency sensor occupancy dipindah jadi opsi peningkatan pasca-MVP. |
+| 1.3 | API Requirements (5.5) | Endpoint `/subscriptions/{user_id}/quota` dan `/bookings/{id}/vault` hanya disebut ringkas tanpa contoh payload lengkap. | Ditambahkan catatan eksplisit bahwa payload lengkap **ditunda dan akan dilengkapi saat sesi desain backend**, bukan pada iterasi dokumen ini (P1-6). |
 
 ---
 
@@ -373,6 +375,8 @@ Tabel ini melengkapi kontrak detail di atas dengan daftar lengkap seluruh antarm
 | FEAT-VLT-01/02 | `GET /api/v1/bookings/{id}/vault` | Status & tautan unduh video + transkrip (lihat Bagian 3.3). |
 | FEAT-USR-01/02 | `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET/PUT /api/v1/users/me` | Registrasi, login, dan profil — mendukung Modul 7 (Bagian 2.7). |
 
+> **Catatan status (P1-6):** Kontrak lengkap (request/response payload penuh, skema error per field) untuk `GET /api/v1/subscriptions/{user_id}/quota` dan `GET /api/v1/bookings/{id}/vault` **sengaja belum dilengkapi** pada iterasi dokumen ini. Kedua endpoint ini baru akan didetailkan saat tim masuk sesi desain backend, mengikuti pola kontrak di Bagian 5.1-5.4. Method, path, dan tujuan singkatnya sudah cukup sebagai acuan sementara untuk IA/UI.
+
 ---
 
 ## 6. Data Validation Rules
@@ -404,10 +408,10 @@ Berikut adalah skema validasi masukan (*input validation*) yang wajib diterapkan
    * Pembatalan `> 24 jam` sebelum sesi: Refund 100% (dikreditkan ke saldo wallet/kuota).
    * Pembatalan `4 - 24 jam` sebelum sesi: Refund 50%.
    * Pembatalan `< 4 jam` sebelum sesi: No Refund (0%).
-3. **Aturan Overtime Kelas (Late Checkout Penalty):**
-   * Jika sistem mendeteksi kehadiran di kelas melebihi 10 menit dari jadwal tanpa reservasi lanjutan, sistem *In-Room* memberikan peringatan suara/layar.
-   * Keterlambatan mengosongkan ruangan > 15 menit dikenakan biaya keterlambatan otomatis sebesar `1.5x tarif per jam` yang ditagihkan ke akun pengguna.
-   * **Dependency belum terdefinisi:** rule ini mengasumsikan adanya mekanisme deteksi kehadiran (mis. sensor occupancy/motion pada perangkat IoT), namun mekanisme tersebut **belum dijelaskan** pada Feature Module Matrix (Bagian 2) maupun spesifikasi hardware IoT manapun. Rule ini tidak dapat diimplementasikan sampai spesifikasi sensor occupancy ditambahkan sebagai fitur (mis. FEAT-IOT-03) pada revisi berikutnya.
+3. **Aturan Overtime Kelas (Late Checkout Penalty) — Di Luar Cakupan MVP, Ditangani Manual:**
+   * **Keputusan (v1.3):** deteksi otomatis via sensor occupancy/motion **dikeluarkan dari cakupan MVP**. Untuk sementara, operasional late checkout dipantau **manual oleh petugas Ops** di lokasi.
+   * **Proses manual untuk MVP:** petugas Ops mengecek kelas melebihi 10 menit dari jadwal tanpa reservasi lanjutan, lalu mencatat & memicu biaya keterlambatan `1.5x tarif per jam` secara manual melalui panel admin (5.1 Ops Dashboard / 5.6 Booking & Refund Management pada `04_InformationArchitecture.md`), bukan otomatis dari sistem.
+   * **Peningkatan pasca-MVP (opsional, belum dijadwalkan):** jika hardware sensor occupancy tersedia di fase berikutnya, alur ini dapat diotomatisasi sebagai fitur baru (mis. FEAT-IOT-03) — tidak lagi memblokir rilis MVP.
 4. **Aturan Penguncian Slot Beruntun (Preventing Abuse):**
    * Satu akun pengguna tidak diperbolehkan melakukan *Slot Locking* aktif lebih dari 3 ruangan secara bersamaan tanpa menyelesaikan pembayaran. Pelanggaran memicu error `MAX_CONCURRENT_LOCKS_EXCEEDED` (lihat Bagian 8).
 5. **Aturan Pembatalan Tidak Berlaku (Cancellation Guard):**

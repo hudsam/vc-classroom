@@ -1,5 +1,5 @@
 # Information Architecture (IA) Document: Platform Sewa Smart Classroom
-**Versi:** 1.1  
+**Versi:** 1.2  
 **Tanggal:** 8 Agustus 2026  
 **Penulis:** Senior Product Manager  
 **Target Audiens:** UI/UX Designer, Frontend Engineer, Lead Software Engineer, Product Manager, System Architect  
@@ -13,6 +13,8 @@
 | Versi | Bagian | Sebelum | Sesudah |
 | :--- | :--- | :--- | :--- |
 | 1.0 | Dokumen (keseluruhan) | — | Draf awal Information Architecture. |
+| 1.2 | Global Sitemap (2) | Belum ada screen untuk halaman Kebijakan & Ketentuan meski PD §8.2 mulai mereferensikannya. | Ditambahkan **1.6 Kebijakan & Ketentuan (Terms & Policy)** sebagai placeholder — konten detail menyusul saat kebijakan refund subscription difinalisasi. |
+| 1.2 | Screen Hierarchy (4) | Status kelengkapan *content hierarchy* per screen tidak ditrack secara eksplisit — hanya disebut naratif ("4 dari ~20 screen"), sehingga gap serupa (Temuan #6 di `docs/A_AnalysisSummary.md`) berisiko lolos lagi tanpa disadari di revisi berikutnya. | Ditambahkan **tabel Cakupan Screen Hierarchy** di awal Bagian 4 yang melacak status Done/Pending untuk seluruh 28 screen di sitemap, plus aturan: screen baru wajib ditambahkan ke tabel ini sebelum dianggap *ready for design* (P1-5). |
 | 1.1 | Global Sitemap (2) | Diagram ASCII box-tree memiliki baris rusak/tidak sejajar (kolom "2.3 Checkout Page" & "5.4 Manual Unlock" kehilangan garis pohon); tidak ada screen untuk Pembatalan Booking (FEAT-BKG-03) maupun User/Role Management (FEAT-USR-02) meski keduanya sudah didefinisikan di FRD. | Diagram ASCII diganti daftar bertingkat yang lebih tahan-rusak; ditambahkan 3.7 (Cancellation & Refund Confirmation), 5.6 (Booking & Refund Management), dan 5.7 (User & Role Management). |
 | 1.1 | Navigation Flow (3) | Panah "Connect Local WiFi / Scan QR" menyamakan proses *scan QR di Smart Lock pintu fisik* (FRD Workflow 3.2, kanal MQTT) dengan *deteksi WiFi lokal untuk In-Room Dashboard* (FEAT-CTL-01, kanal HTTP) — padahal keduanya mekanisme & kanal yang berbeda. Tidak ada jalur untuk Pembatalan Booking maupun fallback saat kuota subscription habis. | Dipisah menjadi dua tahap eksplisit: unlock pintu fisik via QR/PIN → baru connect WiFi kelas untuk in-room dashboard. Ditambahkan jalur Pembatalan Booking dan fallback `QUOTA_EXCEEDED` ke pay-per-use (selaras FRD §8). |
 | 1.1 | Penamaan Screen 3.3 | Disebut dengan 3 nama berbeda di 3 tempat: "3.3 Access Ticket" (sitemap), "3.3 E-Ticket & Access Pass Detail" (navigation flow), "Screen 3.3 E-Ticket Detail" (task flow). | Distandardisasi menjadi **"3.3 E-Ticket & Access Pass"** di seluruh dokumen. |
@@ -47,6 +49,7 @@ Berikut adalah struktur peta situs (*Sitemap*) terorganisir untuk platform web r
 * 1.3 Pricing / Subscription
 * 1.4 Auth (Login / Register)
 * 1.5 Help / FAQ
+* 1.6 Kebijakan & Ketentuan (Terms & Policy) — ***(baru, placeholder — mendukung PD §8.2 Kebijakan Refund Subscription)***
 
 **2.0 Booking Engine**
 * 2.1 Room Detail
@@ -128,7 +131,44 @@ graph TD
 
 ## 4. Screen Hierarchy & Content Layout
 
-Berikut adalah hierarki konten (*Wireframe/Content Structure*) pada halaman-halaman kunci untuk memandu tim UI/UX Designer:
+Berikut adalah hierarki konten (*Wireframe/Content Structure*) pada halaman-halaman kunci untuk memandu tim UI/UX Designer.
+
+### 4.0 Cakupan Screen Hierarchy (Tracking — Anti-Berulangnya Temuan #6)
+
+> **Aturan wajib mulai v1.2:** setiap screen baru yang ditambahkan ke Global Sitemap (Bagian 2) **wajib** ditambahkan sebagai baris ke tabel ini dengan status ⏳ *Pending* pada saat yang sama. Tabel ini adalah satu-satunya sumber kebenaran untuk melihat screen mana yang sudah/belum punya breakdown konten — sehingga gap seperti Temuan #6 (`docs/A_AnalysisSummary.md`) langsung terlihat, bukan baru diketahui belakangan.
+
+| Area | Screen | Status | Ref. Detail |
+| :--- | :--- | :---: | :--- |
+| 1.0 Public/Guest | 1.1 Landing Page | ⏳ Pending | — |
+| 1.0 Public/Guest | 1.2 Catalog Search | ✅ Done | H-01 (§4.1) |
+| 1.0 Public/Guest | 1.3 Pricing / Subscription | ⏳ Pending | — |
+| 1.0 Public/Guest | 1.4 Auth (Login/Register) | ⏳ Pending | — |
+| 1.0 Public/Guest | 1.5 Help / FAQ | ⏳ Pending | — |
+| 1.0 Public/Guest | 1.6 Kebijakan & Ketentuan | ⏳ Pending | Placeholder — lihat PD §8.2 |
+| 2.0 Booking Engine | 2.1 Room Detail | ⏳ Pending | — |
+| 2.0 Booking Engine | 2.2 Schedule Picker | ⏳ Pending | — |
+| 2.0 Booking Engine | 2.3 Checkout Page | ✅ Done | H-03 (§4.3) |
+| 2.0 Booking Engine | 2.4 Success Page | ⏳ Pending | — |
+| 3.0 User Dashboard | 3.1 Overview / Home | ⏳ Pending | — |
+| 3.0 User Dashboard | 3.2 Active Bookings | ⏳ Pending | — |
+| 3.0 User Dashboard | 3.3 E-Ticket & Access Pass | ⏳ Pending | — |
+| 3.0 User Dashboard | 3.4 Cloud Video Vault | ✅ Done | H-04 (§4.4) |
+| 3.0 User Dashboard | 3.5 Subscriptions | ⏳ Pending | — |
+| 3.0 User Dashboard | 3.6 Account Profile | ⏳ Pending | — |
+| 3.0 User Dashboard | 3.7 Cancellation & Refund Confirmation | ⏳ Pending | — |
+| 4.0 In-Room Controller | 4.1 Room Auth Gate | ⏳ Pending | — |
+| 4.0 In-Room Controller | 4.2 Control Panel | ✅ Done | H-02 (§4.2) |
+| 4.0 In-Room Controller | 4.3 Studio Live Feed | ⏳ Pending | — |
+| 4.0 In-Room Controller | 4.4 Session Complete | ⏳ Pending | — |
+| 5.0 Admin Portal | 5.1 Ops Dashboard | ⏳ Pending | — |
+| 5.0 Admin Portal | 5.2 Room Management | ⏳ Pending | — |
+| 5.0 Admin Portal | 5.3 Hardware Status | ⏳ Pending | — |
+| 5.0 Admin Portal | 5.4 Manual Unlock | ⏳ Pending | — |
+| 5.0 Admin Portal | 5.5 Audit Logs | ⏳ Pending | — |
+| 5.0 Admin Portal | 5.6 Booking & Refund Management | ⏳ Pending | — |
+| 5.0 Admin Portal | 5.7 User & Role Management | ⏳ Pending | — |
+
+**Ringkasan:** 4 dari 28 screen (14%) sudah punya content hierarchy formal. Sisanya adalah pekerjaan lanjutan tim UI/UX (P1-5 di `docs/A_AnalysisSummary.md`) — bukan lagi risiko "terlewat tanpa disadari" karena sudah tercatat eksplisit di tabel ini.
 
 ### 4.1 Screen H-01: Room Catalog & Discovery Page (`/rooms`)
 1. **Header Navigation Bar:** Logo, Location Selector, Search Bar, Global Nav (Pricing, Help), User Profile Avatar / Login Button.
