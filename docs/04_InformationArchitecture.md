@@ -1,5 +1,5 @@
 # Information Architecture (IA) Document: Platform Sewa Smart Classroom
-**Versi:** 1.3  
+**Versi:** 1.4  
 **Tanggal:** 8 Agustus 2026  
 **Penulis:** Senior Product Manager  
 **Target Audiens:** UI/UX Designer, Frontend Engineer, Lead Software Engineer, Product Manager, System Architect  
@@ -13,6 +13,7 @@
 | Versi | Bagian | Sebelum | Sesudah |
 | :--- | :--- | :--- | :--- |
 | 1.0 | Dokumen (keseluruhan) | — | Draf awal Information Architecture. |
+| 1.4 | Cross-check final (3, 4.5, 4.9, 4.10, 7) | Screen 3.5 disebut 3 nama berbeda ("Subscriptions" di sitemap/tabel cakupan, "Subscription Wallet" di Navigation Flow, "Subscription" di judul H-05 & tabel §7) — pola yang sama dengan bug 3.3 di v1.1. §7 Catatan Permission belum punya baris untuk 3.5/3.6 meski keduanya sudah Done sejak v1.3. H-09/H-10 tidak mengutip eksplisit nama baris RBAC seperti H-08. | Nama distandardisasi jadi **"3.5 Subscriptions"** di seluruh dokumen. Ditambahkan baris §7 untuk 3.5 Subscriptions & 3.6 Account Profile. H-09/H-10 diperbarui mengutip eksplisit baris RBAC FRD §4 ("Manage Room & Hardware Config" / "Manual Override Door Lock") agar konsisten gaya sitasi dengan H-08. Verifikasi menyeluruh dilakukan sebelum tahap desain UI/UX: seluruh ID (FR/NFR/FEAT/H-xx/kode error) lintas 4 dokumen dan Summary diverifikasi valid & 1:1; tanggal roadmap PD↔PRD dikonfirmasi tetap sinkron; harga PD §8↔§8.1 dikonfirmasi konsisten. |
 | 1.3 | Screen Hierarchy (4.5-4.13 - baru) | 9 screen pada cakupan minimal P1-5 (Subscription, Account Profile, 7 screen Admin Portal) masih berstatus Pending di tabel Cakupan §4.0. | Ditambahkan H-05 s/d H-13 mengikuti pola H-01-H-04 (route, breakdown konten bernomor, rujukan FR/FEAT/error code, catatan akses RBAC). Tabel §4.0 diperbarui: 13/28 screen kini Done. Satu catatan terbuka ditambahkan di H-11 (Audit Logs) karena FRD §4 RBAC belum eksplisit mendefinisikan permission untuk log audit — ditandai jujur sebagai asumsi kerja, bukan fakta pasti. |
 | 1.2 | Global Sitemap (2) | Belum ada screen untuk halaman Kebijakan & Ketentuan meski PD §8.2 mulai mereferensikannya. | Ditambahkan **1.6 Kebijakan & Ketentuan (Terms & Policy)** sebagai placeholder — konten detail menyusul saat kebijakan refund subscription difinalisasi. |
 | 1.2 | Screen Hierarchy (4) | Status kelengkapan *content hierarchy* per screen tidak ditrack secara eksplisit — hanya disebut naratif ("4 dari ~20 screen"), sehingga gap serupa (Temuan #6 di `docs/A_AnalysisSummary.md`) berisiko lolos lagi tanpa disadari di revisi berikutnya. | Ditambahkan **tabel Cakupan Screen Hierarchy** di awal Bagian 4 yang melacak status Done/Pending untuk seluruh 28 screen di sitemap, plus aturan: screen baru wajib ditambahkan ke tabel ini sebelum dianggap *ready for design* (P1-5). |
@@ -116,7 +117,7 @@ graph TD
     CancelChk -->|Belum| K3(3.7 Cancellation & Refund Confirmation)
     K3 --> K2
     J -->|Tab: Vault| K(3.4 Cloud Video Vault)
-    J -->|Tab: Wallet| L(3.5 Subscription Wallet)
+    J -->|Tab: Wallet| L(3.5 Subscriptions)
     
     %% In-Room Context — dipisah eksplisit: unlock pintu fisik (kanal MQTT) vs akses dashboard (kanal HTTP/WiFi)
     M[User Tiba di Lokasi Fisik Kelas] -->|Scan QR / Input PIN di Smart Lock| M2{Token Valid & Dalam Jam Sewa?}
@@ -231,7 +232,7 @@ Berikut adalah hierarki konten (*Wireframe/Content Structure*) pada halaman-hala
    * Jika `TRANSCRIPTION_FAILED`: tampilkan pesan "Transkripsi gagal, video tetap tersedia" (video tetap bisa diunduh, transkrip tidak).
    * **Kondisi akses berbeda per role (lihat FRD §4 RBAC):** untuk role `Member`, transkrip berstatus *Pay Add-on* — tampilkan CTA upsell `Aktifkan AI Transcription` jika belum dibeli saat booking; untuk `Premium Member`, transkrip *Included* — langsung tersedia tanpa upsell.
 
-### 4.5 Screen H-05: Subscription (`/dashboard/subscription`)
+### 4.5 Screen H-05: Subscriptions (`/dashboard/subscription`)
 
 > *Cakupan minimal P1-5 pada `docs/A_AnalysisSummary.md`. Harga tier merujuk PD §8.1.B (harga final, disetujui 8 Ags 2026).*
 
@@ -276,7 +277,7 @@ Berikut adalah hierarki konten (*Wireframe/Content Structure*) pada halaman-hala
 1. **Device List per Ruangan:** Smart Lock, AI Camera, Audio Array — status `Online`/`Offline`, timestamp *heartbeat* terakhir.
 2. **CTA Diagnostik Manual:** Kirim perintah tes/restart perangkat.
 3. **Indikator Insiden:** Highlight merah untuk perangkat yang memicu `IOT_GATEWAY_OFFLINE` dalam 24 jam terakhir.
-4. **Akses:** Studio Admin (Read/Write), Super Admin (Full Access).
+4. **Akses:** Studio Admin (Read/Write), Super Admin (Full Access) — sesuai FRD §4 RBAC baris "Manage Room & Hardware Config" (status hardware termasuk cakupan konfigurasi hardware).
 
 ### 4.10 Screen H-10: Manual Unlock (`/admin/manual-unlock`)
 
@@ -285,7 +286,7 @@ Berikut adalah hierarki konten (*Wireframe/Content Structure*) pada halaman-hala
 1. **Pencarian Booking/Ruangan Aktif:** Cari berdasarkan `booking_id` atau nama ruangan.
 2. **CTA Buka Pintu Manual:** Tombol besar dengan konfirmasi ganda (mencegah *misclick*), dipakai petugas lapangan saat Smart Lock tidak merespon.
 3. **Form Alasan Override:** Wajib diisi sebelum override dieksekusi — tersimpan ke 5.5 Audit Logs.
-4. **Akses:** Studio Admin (Execute), Super Admin (Full Access) — **tidak tampil sama sekali** di navigasi untuk role lain (ref. IA §7).
+4. **Akses:** Studio Admin (Execute), Super Admin (Full Access) — sesuai FRD §4 RBAC baris "Manual Override Door Lock"; **tidak tampil sama sekali** di navigasi untuk role lain (ref. IA §7).
 
 ### 4.11 Screen H-11: Audit Logs (`/admin/audit-logs`)
 
@@ -431,6 +432,8 @@ Matriks RBAC lengkap adalah milik `03_FunctionalRequirementDocument.md` §4 dan 
 | 2.1 - 2.4 (Booking Engine) | Member | CTA `Bayar Sekarang` disabled untuk Guest; opsi metode bayar "Kuota Subscription" pada H-03 hanya tampil untuk role `Premium Member`. |
 | 3.2 Active Bookings / 3.7 Cancellation | Member (data milik sendiri) | Tombol `Batalkan Booking` hanya aktif pada booking milik user yang login (`Read/Execute — Own`); tidak ada akses ke booking user lain. |
 | 3.4 Cloud Video Vault (H-04) | Member (Read Own) / Premium Member | Panel Transcript menampilkan CTA upsell untuk `Member` (Pay Add-on) vs akses langsung untuk `Premium Member` (Included) — lihat detail H-04. |
+| 3.5 Subscriptions (H-05) | Member / Premium Member | `Member` (belum berlangganan) hanya melihat CTA `Mulai Berlangganan`; Current Plan Card, Riwayat Tagihan, dan CTA `Batalkan Subscription` hanya tampil untuk `Premium Member` yang punya langganan aktif — lihat detail H-05. |
+| 3.6 Account Profile (H-06) | Member / Premium Member (data milik sendiri) | Badge Role & Membership bersifat *read-only* (berubah otomatis via FEAT-USR-02), tidak ada input manual untuk mengubah role sendiri — lihat detail H-06. |
 | 4.1 - 4.4 (In-Room Controller) | Member/Premium Member (hanya slot miliknya) | Dashboard hanya bisa dibuka jika IP/subnet sesuai kelas **dan** booking aktif milik user yang login; selain itu tampilkan halaman "Akses Ditolak". |
 | 5.1 - 5.7 (Admin Portal) | Studio Admin / Super Admin | Seluruh area 5.0 disembunyikan total dari navigasi utama untuk role Guest/Member/Premium Member — bukan sekadar disabled, agar tidak membocorkan keberadaan fitur admin. |
 | 5.6 Booking & Refund Management | Studio Admin (Execute) / Super Admin (Full) | Menampilkan kemampuan *override* pembatalan/refund lintas pengguna — berbeda dari 3.7 yang hanya untuk booking milik sendiri. |
