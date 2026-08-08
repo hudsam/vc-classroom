@@ -1,14 +1,30 @@
 # Product Requirement Document (PRD): Platform Sewa Smart Classroom
-**Versi:** 1.0  
+**Versi:** 1.1  
 **Tanggal:** 8 Agustus 2026  
 **Penulis:** Senior Product Manager  
 **Target Audiens:** Stakeholder Bisnis, UI/UX Designer, Software Engineer (Frontend/Backend), Quality Assurance (QA)  
+**Dokumen Terkait:** `01_ProductDiscovery.md` (rujukan strategi bisnis, visi produk, dan analisis pasar — lihat Bagian 10 dokumen ini untuk pembagian kepemilikan topik antar dokumen)
+
+### Riwayat Revisi
+
+| Versi | Bagian | Sebelum | Sesudah |
+| :--- | :--- | :--- | :--- |
+| 1.0 | Dokumen (keseluruhan) | — | Draf awal Product Requirement Document. |
+| 1.1 | Executive Summary (1) | Menjabarkan ulang visi & value proposition yang sudah ada di Product Discovery. | Dipersingkat dan ditambahkan rujukan eksplisit ke `01_ProductDiscovery.md` untuk konteks strategi, agar tidak ada duplikasi narasi antar dokumen. |
+| 1.1 | Business Goals (2.2) | Target konversi subscription tidak dikaitkan ke tier harga mana pun. | Ditambahkan rujukan ke tier Subscription pada Business Model (PD §8) agar target bisnis & struktur harga tetap konsisten. |
+| 1.1 | Scope & Out of Scope (3) | Tidak ada keterkaitan eksplisit ke fase roadmap. | Ditambahkan rujukan ke fase "Q3 2026: Foundation & MVP" pada Product Roadmap (PD §9). |
+| 1.1 | Non-Functional Requirements (5) | Butir NFR tidak memiliki ID individual, hanya dikelompokkan per subbagian (5.1/5.2/5.3); terdapat typo "Kesediafasilitasan". | Ditambahkan ID unik per butir (NFR-P01 dst.) agar dapat dirujuk presisi dari Success Metrics dan dokumen turunan lain; ditambahkan NFR-P04 (Video Processing Time) yang sebelumnya tidak terdefinisi meski dirujuk Success Metrics; typo diperbaiki menjadi "Ketersediaan". |
+| 1.1 | Success Metrics (6) | Kolom "Poin Kontribusi PRD" merujuk subbagian umum (mis. "NFR-5.1", "NFR-5.3") yang berisi beberapa butir sekaligus. | Diperbarui merujuk ID NFR spesifik (mis. "NFR-P03", "NFR-P04") hasil perbaikan Bagian 5. |
+| 1.1 | Product Milestones & Release Plan (9) | Tanggal "IoT Smart Lock Integration" & "Payment Gateway Integration" tidak sinkron dengan Product Roadmap PD §9 (selisih hingga 2 minggu); task "AI Transcription" digabung dengan "In-Room Controller" padahal di PD keduanya terpisah. | Tanggal disamakan dengan PD §9 dan task dipisah agar strukturnya identik; ditambahkan catatan sinkronisasi. |
+| 1.1 | Keterkaitan Antar Dokumen (10 - baru) | Belum ada panduan kepemilikan topik antar dokumen maupun antisipasi redundansi ke depan. | Ditambahkan bagian baru berisi tabel *source of truth* per topik serta rekomendasi anti-redundansi jangka pendek, menengah, dan panjang. |
 
 ---
 
-## 1. Executive Summary & Ringkasan Eksekutif
+## 1. Executive Summary
 
-Dokumen Product Requirement Document (PRD) ini menjabarkan spesifikasi teknis dan fungsional dari **Platform Web Sewa Smart Classroom On-Demand**. Produk ini dirancang untuk memfasilitasi pemesanan ruang pengajaran pintar secara *self-service*, otomatisasi akses fisik pintu via IoT (QR Code/PIN), kontrol perangkat studio secara terintegrasi melalui *In-Room Dashboard*, serta pemrosesan otomatis rekaman pembelajaran berbasis *cloud & AI*. 
+Dokumen Product Requirement Document (PRD) ini menjabarkan **spesifikasi teknis dan fungsional** dari Platform Web Sewa Smart Classroom On-Demand — mencakup *scope*, *functional/non-functional requirements*, *acceptance criteria*, dan rencana rilis.
+
+PRD ini adalah turunan langsung dari `01_ProductDiscovery.md` (PD): PD menjawab **"mengapa"** produk ini dibangun (visi, masalah pengguna, model bisnis), sedangkan PRD ini menjawab **"apa"** yang harus dibangun dan **"bagaimana"** mengukur keberhasilannya secara teknis. Narasi strategi bisnis, visi produk, persona, dan analisis pasar sengaja tidak diulang di sini — rujuk PD untuk konteks tersebut agar kedua dokumen tidak saling tumpang tindih dan mudah dijaga konsistensinya (lihat Bagian 10).
 
 PRD ini bertindak sebagai panduan eksekusi teknis bagi tim lintas fungsi guna memastikan produk dikembangkan sesuai batasan lingkup (*scope*), kualitas (*acceptance criteria*), dan target jadwal yang disepakati.
 
@@ -26,23 +42,27 @@ PRD ini bertindak sebagai panduan eksekusi teknis bagi tim lintas fungsi guna me
 2. **Efisiensi Beban Operasional (OpEx):** Menekan biaya operasional studio hingga 60% dibanding studio rekaman konvensional melalui otomasi IoT tanpa kru manual.
 3. **Penyertaan Model Pendapatan Berulang (Recurring Revenue):** Mengonversi minimal 20% pengguna *pay-per-use* menjadi pelanggan *Subscription Membership* pada Q1 2027.
 
+> **Rujukan:** Target konversi pada poin 3 mengacu pada struktur tier Basic/Pro/Enterprise yang didefinisikan di `01_ProductDiscovery.md` §8 (Business Model & Monetization Strategy). Perubahan harga/tier di PD wajib ditinjau ulang terhadap target ini agar business goal tidak menjadi tidak relevan.
+
 ---
 
 ## 3. Scope & Out of Scope
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                          PROJECT SCOPE MATRIX                          │
-├────────────────────────────────────────┬───────────────────────────────┤
-│               IN-SCOPE                 │          OUT-OF-SCOPE         │
-├────────────────────────────────────────┼───────────────────────────────┤
-│ • Web Application (Responsive)         │ • Native Mobile Apps (iOS/Android)│
-│ • Self-Service Booking & Payment       │ • Pengadaan/Manufaktur Hardware│
-│ • Smart Lock Integration (MQTT/REST)   │ • Integrasi LMS Kustom Enterprise│
-│ • In-Room Web Controller Dashboard     │ • Fitur Marketplace Tutor/Guru│
-│ • Cloud Auto-Upload & AI Transcription │ • Pembatalan Manual via Admin │
-└────────────────────────────────────────┴───────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          PROJECT SCOPE MATRIX                               │
+├────────────────────────────────────────┬────────────────────────────────────┤
+│               IN-SCOPE                 │          OUT-OF-SCOPE              │
+├────────────────────────────────────────┼────────────────────────────────────┤
+│ • Web Application (Responsive)         │ • Native Mobile Apps (iOS/Android) │
+│ • Self-Service Booking & Payment       │ • Pengadaan/Manufaktur Hardware.   │
+│ • Smart Lock Integration (MQTT/REST)   │ • Integrasi LMS Kustom Enterprise. │
+│ • In-Room Web Controller Dashboard     │ • Fitur Marketplace Tutor/Guru.    │
+│ • Cloud Auto-Upload & AI Transcription │ • Pembatalan Manual via Admin      │
+└────────────────────────────────────────┴────────────────────────────────────┘
 ```
+
+> **Rujukan:** Cakupan pada bagian ini merepresentasikan fase **"Q3 2026: Foundation & MVP"** pada Product Roadmap (`01_ProductDiscovery.md` §9). Jika fase roadmap berubah, Scope & Out of Scope ini wajib ditinjau ulang agar tidak terjadi drift antar dokumen.
 
 ### 3.1 Scope (Dalam Lingkup)
 * **Web Application (Responsive):** Modul Katalog Ruangan, *Real-time Availability Calendar*, *Checkout*, dan *User Video Vault*.
