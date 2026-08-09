@@ -18,12 +18,7 @@
 | Versi | Bagian | Sebelum | Sesudah |
 | :--- | :--- | :--- | :--- |
 | 1.0 | Dokumen (keseluruhan) | — | Draf awal skema database. |
-| 1.1 | Header | Tautan "Dokumen Terkait" ke `README/UseCaseDiagram.md` rusak (file sebenarnya `README/2-UseCaseDiagram.md`); `docs/X_ProgressSummary.md` & `README/2-UITesting.md` tidak dirujuk. | Tautan diperbaiki; 2 dokumen terkait ditambahkan. |
-| 1.1 | Kamus Data §3.1, §3.16 | Deskripsi `users.role` & `audit_logs.actor_role` memakai istilah informal "Admin/Super" yang tidak cocok dengan `role_enum` resmi (`STUDIO_ADMIN`/`SUPER_ADMIN`) di §4 — inkonsistensi internal dokumen. | Deskripsi disamakan persis dengan `role_enum`. |
-| 1.1 | Kamus Data §3.2, Workflow §5.2 | `monthly_hours_quota` Enterprise memakai dua sentinel berbeda sekaligus ("-1 / 9999") tanpa definisi tunggal; pseudocode §5.2 tidak menangani kasus "Unlimited" sehingga secara logika akan **salah memicu `QUOTA_EXCEEDED` untuk Enterprise** (bug). `storage_gb` mewajibkan angka pasti untuk Basic/Enterprise padahal PD §8.1.B tidak menyebutkannya. | Sentinel dikunci ke `-1` saja; pseudocode §5.2 ditambahkan pengecekan eksplisit sebelum pengurangan kuota; `storage_gb` dibuat *nullable* dengan catatan ⚠️ Asumsi. |
-| 1.1 | ERD, Kamus Data §3.17-3.19, Workflow §5.5-§5.7, Indeks §6.5 | Tidak ada tabel untuk (a) refund pembatalan booking pay-per-use (FEAT-BKG-03, punya kontrak API eksplisit di FRD §5.4 tapi tidak ada tabelnya), (b) "saldo wallet" yang disebut eksplisit di FRD §7.2 tapi tidak pernah direpresentasikan, (c) log percobaan akses gagal yang dibutuhkan alert `TOKEN_EXPIRED_OR_INVALID` (FRD §8) & Live Alert Feed (IA H-07). | Ditambahkan tabel `booking_cancellations`, `wallet_transactions`, `door_access_attempts` beserta relasi ERD, alur workflow, dan indeks pendukung. |
-| 1.1 | Workflow §5.6 | Tabel `subscription_refunds` sudah ada di v1.0 tapi tidak punya narasi alur (gap konsistensi internal dokumen). | Ditambahkan narasi alur mengacu PD §8.2, dengan ⚠️ Asumsi eksplisit untuk bagian yang belum final di dokumen sumber. |
-| 1.1 | Keamanan Data §8 | Tidak ada ketentuan soal `wallet_balance` saat akun dihapus (soft delete). | Ditambahkan catatan ⚠️ Asumsi + rekomendasi teknis minimal (blokir hapus akun jika saldo > 0), menunggu sign-off produk/finance. |
+| 1.1 | Header, §3.1, §3.2, §3.16, §5.2, §5.5-§5.7, §6.5, §8 | Beberapa inkonsistensi internal & gap struktural (tautan rusak, istilah role tidak cocok enum, bug penanganan kuota Enterprise, 3 tabel MVP yang belum ada). | Diperbaiki & dilengkapi langsung (lihat perubahan per bagian di bawah). Detail temuan, analisis akar masalah, dan status tindak lanjut bisnis dipindahkan ke `docs/X_ProgressSummary.md` §9 agar dokumen ini tetap fokus ke desain skema, bukan laporan analisis. |
 
 ---
 
@@ -336,7 +331,7 @@ Menyimpan paket katalog subscription yang disetujui tim bisnis (Finance - 8 Agus
 | `id` | `VARCHAR(50)` | No | — | `PRIMARY KEY` (Enum: `'BASIC'`, `'PRO'`, `'ENTERPRISE'`) | ID string paket langganan. |
 | `name` | `VARCHAR(100)` | No | — | — | Nama komersial paket. |
 | `monthly_hours_quota` | `INTEGER` | No | — | `>= -1`; **`-1` = sentinel "Unlimited" (khusus Enterprise)** | Kuota sewa ruangan per bulan sesuai PD §8.1.B: Basic = 10, Pro = 30. **Enterprise = `-1`** — PD hanya menyebut "Unlimited (prakiraan kuota)" tanpa angka pasti, sehingga `-1` adalah representasi teknis internal, bukan angka bisnis final. Lihat §5.2 untuk logika penanganan nilai `-1` ini di alur pemotongan kuota (wajib di-skip, bukan dikurangi). |
-| `storage_gb` | `INTEGER` | Yes | `NULL` | `>= 0` jika diisi | Kuota penyimpanan video cloud (Vault). **Hanya Pro yang punya angka pasti di PD §8.1.B (500 GB).** ⚠️ **Asumsi (belum terdokumentasi):** PD tidak menyebut angka GB untuk Basic ("Standard Storage", tanpa kuantitas) maupun Enterprise (tidak disebutkan sama sekali) — kolom dibuat *nullable* agar tidak memaksa angka karangan untuk kedua tier ini; nilai `NULL` berarti "belum ditentukan bisnis", bukan "tanpa batas". Perlu konfirmasi tim bisnis sebelum go-live. |
+| `storage_gb` | `INTEGER` | Yes | `NULL` | `>= 0` jika diisi | Kuota penyimpanan video cloud (Vault). **Hanya Pro yang punya angka pasti di PD §8.1.B (500 GB).** ⚠️ **Asumsi:** kolom dibuat *nullable* karena PD tidak menyebut angka GB untuk Basic/Enterprise — `NULL` berarti "belum ditentukan bisnis", bukan "tanpa batas". Tracking: `docs/X_ProgressSummary.md` P2-14. |
 | `includes_ai_transcription` | `BOOLEAN` | No | `FALSE` | — | Status transkripsi otomatis (Basic: No, Pro/Ent: Yes). |
 | `monthly_price` | `NUMERIC(12,2)`| No | — | `>= 0` (Basic: 1.2M, Pro: 4.9M, Ent: 11.9M) | Harga tagihan bulanan dalam IDR. |
 | `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Tanggal pembuatan konfigurasi plan. |
@@ -555,9 +550,9 @@ Menampung log keamanan terpusat untuk aktivitas administratif penting di Portal 
 | `description` | `TEXT` | No | — | — | Narasi penjelas aksi (e.g. "Mengubah role user X dari Member ke Admin"). |
 | `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu pencatatan log (sumber waktu server). |
 
-### 3.17 Tabel `booking_cancellations` *(baru — hasil analisa)*
+### 3.17 Tabel `booking_cancellations`
 
-> **Temuan:** Draf v1.0 memiliki `subscription_refunds` untuk pembatalan **langganan**, tetapi tidak memiliki tabel setara untuk pembatalan **booking pay-per-use self-service** (FEAT-BKG-03) — padahal ini adalah alur MVP inti yang sudah punya kontrak API eksplisit di `docs/03_FunctionalRequirementDocument.md` §5.4 (`POST /api/v1/bookings/{id}/cancel`, response memuat `refund_percentage` & `refund_amount`) dan screen `3.7 Cancellation & Refund Confirmation` / `5.6 Booking & Refund Management` di IA. Tabel ini menutup gap tersebut, memakai field yang **sama persis namanya** dengan payload API §5.4 agar tidak ada terjemahan ganda di kode.
+Mencatat refund pembatalan booking pay-per-use self-service (FEAT-BKG-03) — pasangan `subscription_refunds` untuk level booking, bukan langganan. Field disamakan persis dengan payload `POST /api/v1/bookings/{id}/cancel` (`docs/03_FunctionalRequirementDocument.md` §5.4) agar tidak ada terjemahan ganda di kode. Riwayat penambahan tabel ini: `docs/X_ProgressSummary.md` §9.
 
 | Nama Kolom | Tipe Data | Nullable | Default | Batasan & Aturan Bisnis / FK | Deskripsi |
 | :--- | :--- | :---: | :---: | :--- | :--- |
@@ -572,9 +567,9 @@ Menampung log keamanan terpusat untuk aktivitas administratif penting di Portal 
 | `cancelled_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu pembatalan dieksekusi — dipakai untuk menghitung selisih jam ke sesi (basis `refund_percentage`). |
 | `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu record dibuat. |
 
-### 3.18 Tabel `wallet_transactions` *(baru — hasil analisa)*
+### 3.18 Tabel `wallet_transactions`
 
-> **Temuan:** `03_FunctionalRequirementDocument.md` §7.2 menyebut refund pembatalan booking pay-per-use "dikreditkan ke **saldo wallet**/kuota" — istilah "wallet" ini tidak direpresentasikan sama sekali di draf skema v1.0 (hanya kuota subscription yang ada). Tabel ini adalah *ledger* append-only (pola sama dengan `audit_logs` — tidak pernah di-`UPDATE`/`DELETE`, hanya `INSERT`) agar saldo `users.wallet_balance` selalu bisa direkonsiliasi dari riwayat transaksinya.
+*Ledger* append-only (pola sama dengan `audit_logs` — tidak pernah di-`UPDATE`/`DELETE`, hanya `INSERT`) untuk saldo kredit internal `users.wallet_balance` yang disebut FRD §7.2 ("dikreditkan ke saldo wallet/kuota"), agar saldo selalu bisa direkonsiliasi dari riwayat transaksinya. Riwayat penambahan tabel ini: `docs/X_ProgressSummary.md` §9.
 
 | Nama Kolom | Tipe Data | Nullable | Default | Batasan & Aturan Bisnis / FK | Deskripsi |
 | :--- | :--- | :---: | :---: | :--- | :--- |
@@ -588,9 +583,9 @@ Menampung log keamanan terpusat untuk aktivitas administratif penting di Portal 
 | `description` | `TEXT` | Yes | `NULL` | — | Narasi ringkas (e.g. "Refund pembatalan booking bkg-20260820-0089"). |
 | `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu transaksi dicatat. |
 
-### 3.19 Tabel `door_access_attempts` *(baru — hasil analisa)*
+### 3.19 Tabel `door_access_attempts`
 
-> **Temuan:** Matriks error `03_FunctionalRequirementDocument.md` §8 mensyaratkan deteksi *"jika terjadi berulang (>3x) pada `room_id` yang sama dalam 10 menit, kirim notifikasi ke Studio Admin"* untuk kode `TOKEN_EXPIRED_OR_INVALID`, dan `04_InformationArchitecture.md` §4.7 (H-07 Ops Dashboard) mensyaratkan **Live Alert Feed** yang menampilkan insiden ini — namun draf skema v1.0 hanya mencatat token yang **valid** (`room_access_tokens`), tidak ada jejak percobaan **gagal**. Tabel ini menutup gap tersebut.
+Mencatat **setiap** percobaan akses Smart Lock (berhasil maupun gagal) — berbeda dari `room_access_tokens` yang hanya mencatat token valid. Menjadi basis data untuk deteksi ambang batas `TOKEN_EXPIRED_OR_INVALID` berulang (FRD §8) dan Live Alert Feed Ops Dashboard (IA §4.7/H-07). Riwayat penambahan tabel ini: `docs/X_ProgressSummary.md` §9.
 
 | Nama Kolom | Tipe Data | Nullable | Default | Batasan & Aturan Bisnis / FK | Deskripsi |
 | :--- | :--- | :---: | :---: | :--- | :--- |
@@ -654,7 +649,7 @@ Jika metode pembayaran terpilih adalah **`SUBSCRIPTION_QUOTA`** (Premium Member 
    WHERE user_id = :user_id AND status = 'ACTIVE' 
    FOR UPDATE;
    ```
-3. Melakukan pengecekan sisa kuota — **wajib periksa sentinel "Unlimited" lebih dulu** (koreksi hasil analisa: pseudocode draf v1.0 langsung mengurangkan tanpa case ini, yang akan membuat `sisa_kuota` selalu negatif untuk Enterprise dan salah memicu `QUOTA_EXCEEDED`):
+3. Melakukan pengecekan sisa kuota — **wajib periksa sentinel "Unlimited" lebih dulu**, sebelum pengurangan, agar Enterprise (`quota_hours_total = -1`) tidak pernah dihitung sebagai kuota negatif:
    ```sql
    IF quota_hours_total = -1 THEN
        -- Enterprise "Unlimited" (§3.2) — lewati pengecekan sisa kuota sepenuhnya
@@ -702,9 +697,9 @@ Jika metode pembayaran terpilih adalah **`SUBSCRIPTION_QUOTA`** (Premium Member 
    * Begitu selesai dikonversi oleh mesin AI: memperbarui status `ai_transcriptions.status` = `'READY'` serta menulis tautan bucket berkas teks hasil transkrip ke `transcript_srt_url` dan `transcript_json_url`.
    * Jika konversi gagal pasca-retry 3x: memperbarui status `ai_transcriptions.status` = `'FAILED'` (memicu notifikasi error `TRANSCRIPTION_FAILED` di Admin panel).
 
-### 5.5 Alur Pembatalan & Refund Booking Pay-Per-Use *(baru — hasil analisa, sebelumnya tidak terdokumentasi meski tabelnya sekarang ada di §3.17-3.18)*
+### 5.5 Alur Pembatalan & Refund Booking Pay-Per-Use
 
-Alur ini mengimplementasikan `POST /api/v1/bookings/{id}/cancel` (`03_FunctionalRequirementDocument.md` §5.4) yang dipanggil dari screen self-service `3.7 Cancellation & Refund Confirmation` maupun override admin `5.6 Booking & Refund Management`.
+Mengimplementasikan `POST /api/v1/bookings/{id}/cancel` (`03_FunctionalRequirementDocument.md` §5.4) yang dipanggil dari screen self-service `3.7 Cancellation & Refund Confirmation` maupun override admin `5.6 Booking & Refund Management`.
 
 1. Sistem memvalidasi **Cancellation Guard** (Business Rule 5, FRD §7): jika `bookings.status` sudah `'COMPLETED'`/`'CANCELLED'` atau `current_time >= start_time`, tolak dengan `CANCELLATION_NOT_ALLOWED` (409).
 2. Hitung `refund_percentage` berdasarkan selisih waktu ke `start_time` (FRD §7.2): `100` jika `> 24 jam`, `50` jika `4-24 jam`, `0` jika `< 4 jam`.
@@ -719,7 +714,7 @@ Alur ini mengimplementasikan `POST /api/v1/bookings/{id}/cancel` (`03_Functional
    * (`COMMIT`)
 4. Response `200 OK` mengembalikan `refund_percentage` & `refund_amount` sesuai kontrak API §5.4.
 
-### 5.6 Alur Pembatalan & Refund Subscription *(baru — hasil analisa; tabel `subscription_refunds` sudah ada di draf v1.0 tapi belum punya narasi alur)*
+### 5.6 Alur Pembatalan & Refund Subscription
 
 Mengikuti alur komunikasi draft kontekstual `01_ProductDiscovery.md` §8.2 (angka "30 hari" & SLA proses masih **belum final**, menunggu validasi bisnis/legal — lihat catatan di §8.2 sumber):
 
@@ -729,9 +724,9 @@ Mengikuti alur komunikasi draft kontekstual `01_ProductDiscovery.md` §8.2 (angk
 4. Jika `'APPROVED'`: update `user_subscriptions.status = 'CANCELLED'`, `user_subscriptions.auto_renew = FALSE`; nominal `refund_amount` diproses ke metode pembayaran asal (di luar cakupan skema — ditangani Payment Gateway, bukan `wallet_balance`, karena ini pembatalan siklus tagihan bulanan bukan pembatalan sesi per-jam).
 5. Jika `'REJECTED'`: `user_subscriptions` tidak berubah, tetap aktif hingga `end_date`.
 
-> ⚠️ **Asumsi (belum terdokumentasi):** PD §8.2 belum mengunci angka SLA hari kerja proses refund maupun mekanisme pencairan dana (transfer manual vs reversal otomatis PG) — poin 4 di atas adalah asumsi kerja minimal agar skema tetap konsisten, **bukan keputusan final**. Perlu dikonfirmasi bersama `P1-6`/kebijakan final IA screen 1.6 sebelum implementasi.
+> ⚠️ **Asumsi (belum terdokumentasi):** PD §8.2 belum mengunci angka SLA hari kerja proses refund maupun mekanisme pencairan dana — poin 4 di atas adalah asumsi kerja minimal agar skema tetap konsisten, **bukan keputusan final**. Tracking: `docs/X_ProgressSummary.md` P2-16.
 
-### 5.7 Alur Deteksi Percobaan Akses Berulang (Security Alert) *(baru — hasil analisa)*
+### 5.7 Alur Deteksi Percobaan Akses Berulang (Security Alert)
 
 Melengkapi Workflow 3.2 (`03_FunctionalRequirementDocument.md`) dan fail-safe `TOKEN_EXPIRED_OR_INVALID` (§8):
 
@@ -801,7 +796,7 @@ CREATE INDEX idx_audit_logs_filter
 ON audit_logs (target_table, action, created_at DESC);
 ```
 
-### 6.5 Indeks Pendukung Temuan Baru (Wallet, Pembatalan & Security Alert) *(baru — hasil analisa)*
+### 6.5 Indeks Pendukung Wallet, Pembatalan & Security Alert
 Mendukung query yang dipakai alur §5.5-§5.7 di atas.
 ```sql
 -- Menjaga Business Rule 4 (MAX_CONCURRENT_LOCKS_EXCEEDED): hitung cepat booking PENDING_PAYMENT milik satu user
@@ -861,7 +856,7 @@ Sesuai dengan regulasi kepatuhan privasi (GDPR / UU PDP):
    * Kolom `deleted_at` di tabel `users` akan diisi timestamp saat pengguna menghapus akunnya.
    * Seluruh query publik harus mengabaikan record dengan `deleted_at IS NOT NULL`.
    * Setelah 30 hari (masa tunggu pembatalan akun), worker otomatis akan melakukan pengaburan data (*data masking* / anonimisasi) pada kolom sensitif seperti `email` (diubah menjadi `deleted_user_id@anonymized.com`), `name` (`"Deleted User"`), dan `phone` (`"0"`), namun tetap mempertahankan integritas data transaksional di tabel `bookings` dan `payments` demi kepentingan audit laporan keuangan perusahaan.
-   * ⚠️ **Asumsi (belum terdokumentasi — hasil analisa):** Belum ada keputusan bisnis eksplisit di dokumen sumber mengenai nasib `users.wallet_balance` yang masih tersisa saat akun dihapus (dicairkan? hangus? Perlu proses klaim manual?). Untuk sementara, rekomendasi teknis minimal: **blokir proses penghapusan akun (soft delete) jika `wallet_balance > 0`** hingga saldo dihabiskan/dicairkan, agar tidak ada dana pengguna yang hilang diam-diam — ini perlu sign-off produk/finance, bukan keputusan final.
+   * ⚠️ **Asumsi:** belum ada keputusan bisnis soal nasib `users.wallet_balance` saat akun dihapus. Rekomendasi teknis minimal: **blokir soft delete jika `wallet_balance > 0`** hingga saldo dihabiskan/dicairkan. Tracking: `docs/X_ProgressSummary.md` P2-15.
 2. **Kerahasiaan Media (Video Vault)**:
    * Tautan di kolom `raw_video_url` dan `processed_video_url` pada tabel `recordings` menunjuk ke bucket S3 yang diproteksi secara privat.
    * Aplikasi mengakses file menggunakan mekanisme **S3 Presigned URL** dengan masa kedaluwarsa URL maksimal 1 jam, guna mencegah kebocoran data rekaman kelas ke publik yang tidak berhak.
