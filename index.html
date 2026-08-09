@@ -108,7 +108,7 @@
                 <div class="relative">
                     <i data-lucide="search"
                         class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-surface-textAlt"></i>
-                    <input type="text" placeholder="Cari ruangan, lokasi, atau fasilitas..."
+                    <input type="text" id="searchInput" placeholder="Cari ruangan, lokasi, atau fasilitas..."
                         class="w-full pl-10 pr-4 py-2 bg-brand-50 border border-transparent focus:border-brand-500 focus:bg-white rounded-lg outline-none transition-all text-sm placeholder:text-surface-textAlt">
                 </div>
             </div>
@@ -160,14 +160,14 @@
             <!-- Filter: Kapasitas -->
             <div class="mb-8">
                 <h3 class="text-xs font-semibold tracking-widest text-brand-500 uppercase mb-3">Kapasitas</h3>
-                <div class="flex flex-wrap gap-2">
-                    <button
-                        class="px-4 py-1.5 rounded-full border border-brand-400 bg-brand-50 text-brand-500 text-sm font-medium">1-10
+                <div class="flex flex-wrap gap-2" id="capacityGroup">
+                    <button data-tier="SMALL"
+                        class="px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors">1-10
                         Org</button>
-                    <button
+                    <button data-tier="MEDIUM"
                         class="px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors">11-30
                         Org</button>
-                    <button
+                    <button data-tier="LARGE"
                         class="px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors">31-50
                         Org</button>
                 </div>
@@ -176,27 +176,27 @@
             <!-- Filter: Fasilitas -->
             <div class="mb-8">
                 <h3 class="text-xs font-semibold tracking-widest text-brand-500 uppercase mb-3">Fasilitas</h3>
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-3" id="facilitiesGroup">
                     <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" checked class="custom-checkbox">
+                        <input type="checkbox" value="SMART_BOARD" class="custom-checkbox facility-checkbox">
                         <span
                             class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Smart
                             Board</span>
                     </label>
                     <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" class="custom-checkbox">
+                        <input type="checkbox" value="MULTI_CAM_AI" class="custom-checkbox facility-checkbox">
                         <span
                             class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Multi-Cam
                             AI</span>
                     </label>
                     <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" class="custom-checkbox">
+                        <input type="checkbox" value="STUDIO_PODCASTING" class="custom-checkbox facility-checkbox">
                         <span
                             class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Studio
                             Podcasting</span>
                     </label>
                     <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" checked class="custom-checkbox">
+                        <input type="checkbox" value="AUDIO_ARRAY" class="custom-checkbox facility-checkbox">
                         <span
                             class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Audio
                             Array</span>
@@ -227,11 +227,11 @@
 
             <!-- Filter Actions -->
             <div class="flex flex-col gap-3">
-                <button
+                <button id="btnApplyFilters"
                     class="w-full bg-brand-400 hover:bg-brand-500 text-white py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
                     Terapkan Filter
                 </button>
-                <button
+                <button id="btnResetFilters"
                     class="w-full bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-2.5 rounded-lg font-medium text-sm transition-colors">
                     Reset
                 </button>
@@ -463,75 +463,270 @@
 
     <!-- Initialize Scripts -->
     <script>
+        // API Base URL
+        const API_URL = '/api/v1';
+
         // Initialize Lucide Icons
         lucide.createIcons();
 
-        // Edge Case Simulation Logic
-        const simEmptyCheckbox = document.getElementById('simEmpty');
-        const simLockedCheckbox = document.getElementById('simLocked');
-
+        // DOM elements
         const catalogGrid = document.getElementById('catalogGrid');
         const emptyState = document.getElementById('emptyState');
         const resultText = document.getElementById('resultText');
         const alertBanner = document.getElementById('alertBanner');
-        const btnPilihJadwal = document.getElementById('btnPilihJadwal');
+        const searchInput = document.getElementById('searchInput');
+        const capacityGroup = document.getElementById('capacityGroup');
+        const facilitiesGroup = document.getElementById('facilitiesGroup');
+        const btnApplyFilters = document.getElementById('btnApplyFilters');
+        const btnResetFilters = document.getElementById('btnResetFilters');
 
-        // Initial normal state copy
-        const originalResultText = resultText.innerText;
-        const originalBtnHTML = btnPilihJadwal.innerHTML;
-        const originalBtnClass = btnPilihJadwal.className;
+        // Edge Case Simulation elements
+        const simEmptyCheckbox = document.getElementById('simEmpty');
+        const simLockedCheckbox = document.getElementById('simLocked');
 
-        // Simulate Empty State
-        simEmptyCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
+        // Filter state variables
+        let selectedCapacity = null;
+
+        // Capacity Selection Toggle
+        capacityGroup.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            const tier = btn.getAttribute('data-tier');
+
+            // Toggle active styling
+            const buttons = capacityGroup.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.className = 'px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors';
+            });
+
+            if (selectedCapacity === tier) {
+                selectedCapacity = null; // deselect
+            } else {
+                selectedCapacity = tier;
+                btn.className = 'px-4 py-1.5 rounded-full border border-brand-400 bg-brand-50 text-brand-500 text-sm font-medium';
+            }
+        });
+
+        // Fetch rooms from API
+        async function fetchRooms() {
+            try {
+                // Collect selected facilities
+                const checkedFacilities = [];
+                const checkboxes = facilitiesGroup.querySelectorAll('.facility-checkbox:checked');
+                checkboxes.forEach(cb => checkedFacilities.push(cb.value));
+
+                const params = new URLSearchParams();
+                if (searchInput.value.trim()) {
+                    params.append('location', searchInput.value.trim());
+                }
+                if (selectedCapacity) {
+                    params.append('capacity_tier', selectedCapacity);
+                }
+                if (checkedFacilities.length > 0) {
+                    params.append('facility', checkedFacilities.join(','));
+                }
+
+                let url = `${API_URL}/rooms`;
+                const queryString = params.toString();
+                if (queryString) {
+                    url += `?${queryString}`;
+                }
+
+                const response = await fetch(url);
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data && Array.isArray(result.data.rooms)) {
+                    renderRooms(result.data.rooms);
+                } else {
+                    renderRooms([]);
+                }
+            } catch (error) {
+                console.error('Error fetching rooms:', error);
+                renderRooms([]);
+            }
+        }
+
+        // Render rooms dynamically
+        function renderRooms(rooms) {
+            // Check if simulated empty state is forced
+            if (simEmptyCheckbox.checked) {
+                rooms = [];
+            }
+
+            catalogGrid.innerHTML = '';
+
+            if (rooms.length === 0) {
                 catalogGrid.classList.add('hidden');
                 emptyState.classList.remove('hidden');
                 emptyState.classList.add('flex');
                 resultText.innerText = "0 ruangan ditemukan sesuai filter Anda";
+                return;
+            }
 
-                // Disable locked simulation if empty is active
+            emptyState.classList.add('hidden');
+            catalogGrid.classList.remove('hidden');
+            resultText.innerText = `${rooms.length} ruangan ditemukan sesuai filter Anda`;
+
+            rooms.forEach((room, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl border border-surface-border shadow-flat-plus overflow-hidden flex flex-col transition-transform hover:-translate-y-1 hover:shadow-md duration-200';
+
+                // Map images
+                const imageUrl = room.room_id === 'rm-jakarta-01'
+                    ? 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000&auto=format&fit=crop'
+                    : room.room_id === 'rm-jakarta-02'
+                        ? 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1000&auto=format&fit=crop'
+                        : 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=1000&auto=format&fit=crop';
+
+                const statusBadge = room.is_available
+                    ? `<div class="absolute top-4 left-4 bg-brand-100 text-brand-500 px-2.5 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
+                            <div class="w-2 h-2 rounded-full bg-brand-500"></div>
+                            <span class="text-xs font-semibold tracking-wide">Tersedia</span>
+                       </div>`
+                    : `<div class="absolute top-4 left-4 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
+                            <div class="w-2 h-2 rounded-full bg-gray-500"></div>
+                            <span class="text-xs font-semibold tracking-wide">Penuh</span>
+                       </div>`;
+
+                const formatFacility = (f) => {
+                    return f.split('_').map(word => word.charAt(0) + word.slice(1).toLowerCase()).join(' ');
+                };
+
+                const facilityChips = room.facilities.map(f => `
+                    <span class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">${formatFacility(f)}</span>
+                `).join('');
+
+                const buttonAction = room.is_available
+                    ? `<button class="flex-1 bg-brand-400 hover:bg-brand-500 text-white py-2 rounded-lg font-medium text-sm transition-colors shadow-sm btn-pilih" data-id="${room.room_id}">
+                            Pilih Jadwal
+                       </button>`
+                    : `<button class="flex-1 bg-surface-border text-surface-textAlt py-2 rounded-lg font-medium text-sm cursor-not-allowed" disabled>
+                            Jadwal Penuh
+                       </button>`;
+
+                card.innerHTML = `
+                    <div class="h-48 relative bg-gray-200">
+                        <img src="${imageUrl}" alt="${room.name}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 img-overlay"></div>
+                        ${statusBadge}
+                        <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur px-2.5 py-1 rounded flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="users" class="w-3.5 h-3.5 text-surface-textAlt"></i>
+                            <span class="text-xs font-semibold text-surface-text">Maks ${room.capacity} Orang</span>
+                        </div>
+                    </div>
+                    <div class="p-5 flex flex-col flex-1">
+                        <div class="flex justify-between items-start gap-4 mb-2">
+                            <h3 class="text-lg font-bold leading-tight">${room.name}</h3>
+                            <div class="text-right shrink-0">
+                                <div class="text-brand-500 font-bold text-xl leading-none tracking-tight">Rp ${room.price_per_hour.toLocaleString('id-ID')}<span class="text-xs font-medium text-surface-textAlt tracking-normal">/jam</span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-surface-textAlt mb-4">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                            <span class="text-xs font-medium">${room.location}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-6 mt-auto">
+                            ${facilityChips}
+                        </div>
+                        <div class="border-t border-surface-border pt-4 flex gap-3 mt-auto">
+                            <button class="flex-1 bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-2 rounded-lg font-medium text-sm transition-colors">
+                                Detail
+                            </button>
+                            ${buttonAction}
+                        </div>
+                    </div>
+                `;
+
+                catalogGrid.appendChild(card);
+            });
+
+            // Re-initialize icons inside dynamically added HTML
+            lucide.createIcons();
+
+            // Re-apply lock simulation if it's currently checked
+            if (simLockedCheckbox.checked) {
+                applyLockedSimulation(true);
+            }
+        }
+
+        // Apply filters click handler
+        btnApplyFilters.addEventListener('click', () => {
+            fetchRooms();
+        });
+
+        // Reset filters handler
+        btnResetFilters.addEventListener('click', () => {
+            searchInput.value = '';
+            selectedCapacity = null;
+
+            const buttons = capacityGroup.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.className = 'px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors';
+            });
+
+            const checkboxes = facilitiesGroup.querySelectorAll('.facility-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+
+            fetchRooms();
+        });
+
+        // Optional: Trigger filter on enter key in search input
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                fetchRooms();
+            }
+        });
+
+        // Edge Case Simulation: Empty State
+        simEmptyCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
                 simLockedCheckbox.disabled = true;
                 simLockedCheckbox.parentElement.style.opacity = '0.5';
+                renderRooms([]);
             } else {
-                catalogGrid.classList.remove('hidden');
-                emptyState.classList.add('hidden');
-                emptyState.classList.remove('flex');
-                resultText.innerText = originalResultText;
-
                 simLockedCheckbox.disabled = false;
                 simLockedCheckbox.parentElement.style.opacity = '1';
+                fetchRooms();
             }
         });
 
-        // Simulate Locked State
-        simLockedCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                // Show Alert Banner
+        // Edge Case Simulation: Locked State helper
+        function applyLockedSimulation(isLocked) {
+            const firstButton = document.querySelector('.btn-pilih');
+            if (isLocked) {
                 alertBanner.classList.remove('hidden');
+                if (firstButton) {
+                    firstButton.innerHTML = 'Sedang Dipesan';
+                    firstButton.className = 'flex-1 bg-amber-100 text-amber-700 py-2 rounded-lg font-semibold text-sm cursor-not-allowed border border-amber-200 shadow-inner';
+                    firstButton.disabled = true;
 
-                // Change Button to 'Locked' State (Simulating SLOCK_ALREADY_LOCKED visual feedback)
-                btnPilihJadwal.innerHTML = 'Sedang Dipesan';
-                btnPilihJadwal.className = 'flex-1 bg-amber-100 text-amber-700 py-2 rounded-lg font-semibold text-sm cursor-not-allowed border border-amber-200 shadow-inner';
-                btnPilihJadwal.disabled = true;
-
-                // Add a subtle visual shake or pulse to draw attention to the locked card
-                const firstCard = btnPilihJadwal.closest('.bg-white');
-                firstCard.style.borderColor = '#f59e0b'; // amber-500
-                setTimeout(() => {
-                    firstCard.style.transition = 'border-color 1s ease';
-                    firstCard.style.borderColor = '';
-                }, 2000);
-
+                    const firstCard = firstButton.closest('.bg-white');
+                    if (firstCard) {
+                        firstCard.style.borderColor = '#f59e0b'; // amber-500
+                        setTimeout(() => {
+                            firstCard.style.transition = 'border-color 1s ease';
+                            firstCard.style.borderColor = '';
+                        }, 2000);
+                    }
+                }
             } else {
-                // Hide Alert Banner
                 alertBanner.classList.add('hidden');
-
-                // Restore Button State
-                btnPilihJadwal.innerHTML = originalBtnHTML;
-                btnPilihJadwal.className = originalBtnClass;
-                btnPilihJadwal.disabled = false;
+                if (firstButton) {
+                    firstButton.innerHTML = 'Pilih Jadwal';
+                    firstButton.className = 'flex-1 bg-brand-400 hover:bg-brand-500 text-white py-2 rounded-lg font-medium text-sm transition-colors shadow-sm btn-pilih';
+                    firstButton.disabled = false;
+                }
             }
+        }
+
+        // Edge Case Simulation: Locked State listener
+        simLockedCheckbox.addEventListener('change', (e) => {
+            applyLockedSimulation(e.target.checked);
         });
+
+        // Initial Load
+        fetchRooms();
     </script>
 </body>
 
