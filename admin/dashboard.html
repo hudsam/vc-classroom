@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SmartRoom Ops</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f2f3ff',
+                            100: '#eaedff',
+                            200: '#dae2fd',
+                            300: '#b4c5ff',
+                            400: '#2563eb',
+                            500: '#004ac6',
+                            600: '#003ea8',
+                            900: '#00174b',
+                        },
+                        surface: {
+                            DEFAULT: '#ffffff',
+                            dim: '#d2d9f4',
+                            bg: '#faf8ff',
+                            border: '#e0e3e5',
+                            text: '#131b2e',
+                            textAlt: '#434655',
+                        },
+                        danger: {
+                            50: '#ffdad6',
+                            100: '#ffb4ab',
+                            500: '#ba1a1a',
+                            600: '#93000a',
+                        },
+                        warning: {
+                            50: '#ffdbcd',
+                            500: '#bc4800',
+                            600: '#943700',
+                        }
+                    },
+                    boxShadow: {
+                        'flat-plus': '0px 4px 6px -1px rgba(0, 0, 0, 0.05), 0px 2px 4px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #faf8ff;
+            color: #131b2e;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Toast Animation */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px) translateX(-50%); }
+            to { opacity: 1; transform: translateY(0) translateX(-50%); }
+        }
+        .toast-enter {
+            animation: slideUpFade 0.3s ease-out forwards;
+        }
+
+        /* Pulse for Live / Emergency */
+        @keyframes pulse-emergency {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-emergency {
+            animation: pulse-emergency 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-surface-bg border-r border-surface-border flex flex-col shrink-0">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-brand-500 tracking-tight">VC-SCR</h1>
+            <div class="mt-1">
+                <span class="text-sm font-medium text-surface-textAlt">Admin Portal</span>
+            </div>
+        </div>
+        
+        <nav class="flex-1 px-4 py-4 flex flex-col gap-1 overflow-y-auto">
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-white border border-surface-border shadow-sm text-brand-500 font-semibold transition-colors">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-sm">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="door-open" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">Room Management</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="router" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">Hardware Status</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="key" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">Manual Overrides</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="scroll-text" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">System Logs</span>
+            </a>
+        </nav>
+
+        <div class="p-4 mt-auto border-t border-surface-border">
+            <button id="btnEmergencyLockdown" class="w-full bg-danger-500 hover:bg-danger-600 text-white py-3 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i data-lucide="triangle-alert" class="w-4 h-4"></i>
+                Emergency Lockdown
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-white">
+        
+        <!-- Topbar -->
+        <header class="h-16 border-b border-surface-border flex items-center justify-between px-6 shrink-0 bg-white z-10">
+            <div class="flex items-center gap-6 flex-1">
+                <div class="flex flex-col justify-center">
+                    <span class="font-bold text-brand-500 text-lg tracking-tight leading-none mb-1">SmartRoom Ops</span>
+                    <div class="flex items-center gap-1.5" id="systemStatusSidebar">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500" id="systemStatusDot"></div>
+                        <span class="text-xs font-medium text-surface-textAlt leading-none" id="systemStatusText">System Active</span>
+                    </div>
+                </div>
+                
+                <div class="relative w-96 max-w-md hidden md:block">
+                    <i data-lucide="search" class="w-4 h-4 text-surface-textAlt absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" placeholder="Search rooms, bookings, or hardware..." class="w-full bg-surface-bg border border-surface-border rounded-full pl-9 pr-4 py-1.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div id="topbarAlertBadge" class="bg-danger-50 text-danger-600 border border-danger-100 px-3 py-1 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer hover:bg-danger-100 transition-colors">
+                    <i data-lucide="circle-alert" class="w-3.5 h-3.5"></i>
+                    <span>1 Incident Active</span>
+                </div>
+                
+                <button class="text-surface-textAlt hover:text-surface-text transition-colors relative">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-danger-500 rounded-full border border-white"></span>
+                </button>
+                <button class="text-surface-textAlt hover:text-surface-text transition-colors">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                
+                <div class="w-px h-6 bg-surface-border mx-2"></div>
+                
+                <div class="flex items-center gap-3 cursor-pointer">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-sm font-bold text-surface-text">Super Admin</div>
+                        <div class="text-xs text-surface-textAlt">Ops Officer</div>
+                    </div>
+                    <div class="w-9 h-9 rounded-full bg-surface-dim overflow-hidden flex items-center justify-center font-bold text-sm shadow-sm border border-surface-border">
+                        <img src="https://ui-avatars.com/api/?name=Super+Admin&background=004ac6&color=fff" alt="Super Admin" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Global Alert Banner -->
+        <div id="globalAlertBanner" class="hidden bg-danger-500 text-white px-6 py-3 flex items-center justify-between shrink-0 shadow-md relative z-20">
+            <div class="flex items-center gap-3">
+                <i data-lucide="triangle-alert" class="w-5 h-5 animate-pulse-emergency"></i>
+                <div>
+                    <span class="text-sm font-bold block" id="globalAlertTitle">Peringatan Sistem: Gateway IoT utama terputus.</span>
+                    <span class="text-xs opacity-90" id="globalAlertDesc">Kontrol otomatis nonaktif. Seluruh ruangan masuk mode fallback.</span>
+                </div>
+            </div>
+            <button id="btnDismissGlobalAlert" class="text-white hover:text-danger-100 p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8 bg-surface-bg">
+            <div class="max-w-7xl mx-auto space-y-8">
+                
+                <!-- KPI Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                    
+                    <!-- KPI 1: Utilization -->
+                    <div class="bg-white rounded-xl border border-surface-border p-5 shadow-flat-plus flex flex-col justify-between h-36">
+                        <div class="flex items-start justify-between">
+                            <h3 class="text-sm font-medium text-surface-textAlt leading-tight">Classroom<br>Utilization Rate</h3>
+                            <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-500">
+                                <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-baseline gap-2 mb-2">
+                                <span class="text-2xl font-bold">78.5%</span>
+                                <span class="text-xs font-semibold text-emerald-600 flex items-center"><i data-lucide="arrow-up" class="w-3 h-3"></i>5.2%</span>
+                            </div>
+                            <div class="w-full bg-surface-border rounded-full h-1.5">
+                                <div class="bg-brand-500 h-1.5 rounded-full" style="width: 78.5%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: Active Bookings -->
+                    <div class="bg-white rounded-xl border border-surface-border p-5 shadow-flat-plus flex flex-col justify-between h-36">
+                        <div class="flex items-start justify-between">
+                            <h3 class="text-sm font-medium text-surface-textAlt leading-tight">Booking Aktif<br>Hari Ini</h3>
+                            <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-500">
+                                <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold mb-1">14 Sesi</div>
+                            <div class="flex items-center gap-4 text-xs font-medium text-surface-textAlt">
+                                <div class="flex items-center gap-1.5">
+                                    <div class="w-2 h-2 rounded-full bg-brand-500"></div>
+                                    <span>10 Berjalan</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <div class="w-2 h-2 rounded-full bg-surface-textAlt"></div>
+                                    <span>4 Mendatang</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: Hardware Incidents -->
+                    <div id="kpiHardware" class="bg-danger-50 rounded-xl border border-danger-100 p-5 shadow-flat-plus flex flex-col justify-between h-36 transition-colors duration-300">
+                        <div class="flex items-start justify-between">
+                            <h3 id="kpiHardwareTitle" class="text-sm font-medium text-danger-700 leading-tight">Insiden<br>Hardware IoT</h3>
+                            <div id="kpiHardwareIconBg" class="w-8 h-8 rounded-lg bg-danger-600 flex items-center justify-center text-white">
+                                <i data-lucide="router" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div id="kpiHardwareCount" class="text-2xl font-bold text-danger-700 mb-1">1 Offline</div>
+                            <div id="kpiHardwareDesc" class="text-xs font-medium text-danger-600/80 leading-tight">Gateway connectivity warning</div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4: Late Checkouts -->
+                    <div class="bg-white rounded-xl border border-surface-border p-5 shadow-flat-plus flex flex-col justify-between h-36">
+                        <div class="flex items-start justify-between">
+                            <h3 class="text-sm font-medium text-surface-textAlt leading-tight">Late Checkout<br>Pending</h3>
+                            <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-500">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold mb-2">2 Kasus</div>
+                            <button id="btnActionLateCheckout" class="w-full bg-brand-50 hover:bg-brand-100 text-brand-600 border border-brand-200 py-1.5 rounded-lg text-xs font-bold transition-colors">
+                                Tindak Lanjut
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Grid Main Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+                    
+                    <!-- Left: Alert Feed (Col span 2) -->
+                    <div class="lg:col-span-2 flex flex-col gap-4">
+                        <div class="flex items-center gap-2 text-sm font-bold text-surface-textAlt mb-2 pb-2 border-b border-surface-border">
+                            <i data-lucide="activity" class="w-4 h-4"></i>
+                            Umpan Alert Real-time & Insiden Perangkat
+                        </div>
+
+                        <div id="alertFeedContainer" class="flex flex-col gap-4">
+                            <!-- Alert 1 -->
+                            <div class="alert-card bg-white rounded-xl border-l-4 border-l-danger-500 border-y border-r border-surface-border p-5 shadow-sm flex flex-col sm:flex-row gap-4 relative overflow-hidden group">
+                                <div class="w-10 h-10 rounded-full bg-danger-50 flex items-center justify-center text-danger-500 shrink-0 mt-1">
+                                    <i data-lucide="triangle-alert" class="w-5 h-5"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                                        <h4 class="text-sm font-bold text-danger-700 tracking-wide">CRITICAL ALERT • 10M AGO</h4>
+                                        <span class="text-[10px] font-semibold text-surface-textAlt uppercase tracking-wider">ID: ALT-8921</span>
+                                    </div>
+                                    <div class="text-base font-bold text-surface-text mb-2">IOT_GATEWAY_OFFLINE</div>
+                                    <p class="text-sm text-surface-textAlt mb-4 leading-relaxed">
+                                        Gateway Smart Lock Ruang 201 (Medium) terputus sejak 10 menit yang lalu. Konektivitas jaringan lokal tidak terdeteksi.
+                                    </p>
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <button class="bg-white border border-surface-border hover:bg-surface-bg text-surface-text px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                            Diagnosis Hardware
+                                        </button>
+                                        <button class="btn-manual-override bg-danger-600 hover:bg-danger-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                                            <i data-lucide="key" class="w-4 h-4"></i> Buka Pintu Manual
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alert 2 -->
+                            <div class="alert-card bg-white rounded-xl border-l-4 border-l-warning-500 border-y border-r border-surface-border p-5 shadow-sm flex flex-col sm:flex-row gap-4 relative overflow-hidden">
+                                <div class="w-10 h-10 rounded-full bg-warning-50 flex items-center justify-center text-warning-600 shrink-0 mt-1">
+                                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                                        <h4 class="text-sm font-bold text-warning-600 tracking-wide">SECURITY WARNING • 45M AGO</h4>
+                                        <span class="text-[10px] font-semibold text-surface-textAlt uppercase tracking-wider">ID: SEC-1044</span>
+                                    </div>
+                                    <div class="text-base font-bold text-surface-text mb-2">TOKEN_EXPIRED_OR_INVALID</div>
+                                    <p class="text-sm text-surface-textAlt mb-4 leading-relaxed">
+                                        Percobaan akses PIN/QR gagal >3x pada Ruang 103 (Small). Pelaku berulang kali memasukkan format yang salah.
+                                    </p>
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <button class="bg-white border border-surface-border hover:bg-surface-bg text-surface-text px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                                            <i data-lucide="search" class="w-4 h-4"></i> Periksa Logs Audit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty State Normal (Hidden initially) -->
+                        <div id="alertNormalState" class="hidden bg-white rounded-xl border border-surface-border p-8 shadow-sm items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0">
+                                <i data-lucide="check-circle" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-base font-bold text-surface-text mb-1">Semua Sistem & Perangkat IoT Berjalan Normal</h4>
+                                <p class="text-sm text-surface-textAlt">Tidak ada insiden atau kegagalan koneksi dalam 24 jam terakhir.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right: Quick Links -->
+                    <div class="flex flex-col gap-4">
+                        <div class="flex items-center gap-2 text-sm font-bold text-surface-textAlt mb-2 pb-2 border-b border-surface-border">
+                            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                            Pintasan Modul Admin
+                        </div>
+
+                        <div class="flex flex-col gap-3">
+                            <a href="#" class="bg-white border border-surface-border hover:border-brand-500 hover:shadow-md p-4 rounded-xl flex items-center justify-between group transition-all">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                                        <i data-lucide="door-open" class="w-5 h-5"></i>
+                                    </div>
+                                    <span class="font-semibold text-sm">Manajemen Ruangan</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-surface-textAlt group-hover:text-brand-500 transition-colors"></i>
+                            </a>
+
+                            <a href="#" class="bg-white border-l-4 border-l-danger-500 border-y border-r border-surface-border hover:shadow-md p-4 rounded-xl flex items-center justify-between group transition-all" id="linkHardware">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-danger-50 text-danger-600 flex items-center justify-center transition-colors">
+                                        <i data-lucide="router" class="w-5 h-5"></i>
+                                    </div>
+                                    <span class="font-semibold text-sm">Status Hardware IoT</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-surface-textAlt group-hover:text-brand-500 transition-colors"></i>
+                            </a>
+
+                            <a href="#" class="bg-white border border-surface-border hover:border-brand-500 hover:shadow-md p-4 rounded-xl flex items-center justify-between group transition-all">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                                        <i data-lucide="key" class="w-5 h-5"></i>
+                                    </div>
+                                    <span class="font-semibold text-sm">Manual Unlock Door</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-surface-textAlt group-hover:text-brand-500 transition-colors"></i>
+                            </a>
+
+                            <a href="#" class="bg-white border border-surface-border hover:border-brand-500 hover:shadow-md p-4 rounded-xl flex items-center justify-between group transition-all">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                                        <i data-lucide="receipt" class="w-5 h-5"></i>
+                                    </div>
+                                    <span class="font-semibold text-sm">Booking & Refund</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-surface-textAlt group-hover:text-brand-500 transition-colors"></i>
+                            </a>
+
+                            <a href="#" class="bg-white border border-surface-border hover:border-brand-500 hover:shadow-md p-4 rounded-xl flex items-center justify-between group transition-all">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                    </div>
+                                    <span class="font-semibold text-sm">User & Role Admin</span>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-surface-textAlt group-hover:text-brand-500 transition-colors"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="fixed inset-0 bg-surface-text/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        
+        <!-- Manual Override Modal -->
+        <div id="modalOverride" class="hidden bg-white rounded-xl shadow-2xl w-full max-w-lg transform scale-95 transition-transform duration-300 flex-col overflow-hidden">
+            <div class="p-6 border-b border-surface-border flex items-center justify-between">
+                <h3 class="text-xl font-bold text-surface-text">Konfirmasi Buka Pintu Manual (Override)</h3>
+                <button class="close-modal-btn text-surface-textAlt hover:text-surface-text">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-6">
+                <div class="bg-danger-50 border border-danger-100 text-danger-700 p-4 rounded-lg flex gap-3 text-sm">
+                    <i data-lucide="triangle-alert" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                    <p>Aksi ini akan mendaftarkan perintah pembukaan pintu fisik secara langsung via server override.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-surface-textAlt uppercase tracking-wider mb-2">Target Ruangan</label>
+                    <div class="border border-surface-border rounded-lg p-3 bg-surface-bg flex items-center gap-3">
+                        <i data-lucide="door-open" class="w-5 h-5 text-surface-textAlt"></i>
+                        <span class="font-medium text-surface-text">Ruang 201 (Medium)</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-surface-textAlt uppercase tracking-wider mb-2">Alasan Override Pintu</label>
+                    <div class="relative">
+                        <select id="overrideReason" class="w-full border border-surface-border rounded-lg px-4 py-3 appearance-none focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 bg-white cursor-pointer font-medium text-surface-text">
+                            <option value="" disabled selected>Pilih alasan...</option>
+                            <option value="terkunci">Penyewa Terkunci</option>
+                            <option value="maintenance">Maintenance / Ops</option>
+                            <option value="emergency">Emergency / Evakuasi</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-surface-textAlt absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-surface-border bg-surface-bg flex items-center justify-center gap-3">
+                <button class="close-modal-btn px-6 py-2.5 rounded-lg font-semibold border border-surface-border bg-white text-surface-text hover:bg-gray-50 transition-colors w-1/2">
+                    Batal
+                </button>
+                <button id="btnConfirmOverride" disabled class="bg-danger-600 text-white px-6 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 opacity-50 cursor-not-allowed transition-colors w-1/2">
+                    <i data-lucide="key" class="w-4 h-4"></i>
+                    Eksekusi Buka Pintu
+                </button>
+            </div>
+        </div>
+
+        <!-- Late Checkout Modal -->
+        <div id="modalLateCheckout" class="hidden bg-white rounded-xl shadow-2xl w-full max-w-xl transform scale-95 transition-transform duration-300 flex-col overflow-hidden">
+            <div class="p-6 border-b border-surface-border flex items-center justify-between">
+                <h3 class="text-xl font-bold text-surface-text">Pencatatan Denda Late Checkout Manual</h3>
+                <button class="close-modal-btn text-surface-textAlt hover:text-surface-text">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-6">
+                <!-- Booking Details -->
+                <div class="border border-brand-100 bg-brand-50/50 rounded-xl p-5">
+                    <div class="flex items-center gap-2 text-xs font-bold text-brand-600 uppercase tracking-wider mb-4">
+                        <i data-lucide="clipboard-list" class="w-4 h-4"></i> Booking Details
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4 text-surface-text">
+                        <div>
+                            <div class="text-xs font-semibold text-surface-textAlt mb-1">Booking ID</div>
+                            <div class="font-medium">VC-9921</div>
+                        </div>
+                        <div>
+                            <div class="text-xs font-semibold text-surface-textAlt mb-1">User</div>
+                            <div class="font-medium">Rina Wijaya</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 text-surface-text">
+                        <div class="text-xs font-semibold text-surface-textAlt mb-1">Room</div>
+                        <div class="font-medium">Studio Pod 4</div>
+                    </div>
+                    
+                    <div class="h-px bg-surface-border my-4"></div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-surface-text">
+                        <div>
+                            <div class="text-xs font-semibold text-surface-textAlt mb-1">Scheduled End</div>
+                            <div class="font-medium">14:00</div>
+                        </div>
+                        <div>
+                            <div class="text-xs font-semibold text-surface-textAlt mb-1 flex items-center gap-1 text-danger-600">
+                                Actual Vacate <i data-lucide="circle-alert" class="w-3 h-3"></i>
+                            </div>
+                            <div class="font-bold text-danger-600">14:45</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fee Calculation -->
+                <div class="border border-surface-border rounded-xl p-5">
+                    <div class="text-xs font-bold text-surface-textAlt uppercase tracking-wider mb-4">
+                        Fee Calculation
+                    </div>
+                    
+                    <div class="flex items-center justify-between py-2 border-b border-surface-border/50 text-sm text-surface-text">
+                        <span class="text-surface-textAlt">Standard Rate</span>
+                        <span class="font-medium">Rp 250.000 / jam</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-surface-border/50 text-sm text-surface-text">
+                        <span class="text-surface-textAlt">Overtime Duration</span>
+                        <span class="font-medium">45 mins</span>
+                    </div>
+                    <div class="flex items-center justify-between py-3 mt-1 text-surface-text">
+                        <span class="font-semibold">Overtime Penalty (1.5x)</span>
+                        <span class="text-lg font-bold text-danger-600">Rp 281.250</span>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-surface-text">Catatan Petugas Ops / Alasan Keterlambatan <span class="text-danger-500">*</span></label>
+                    <textarea id="lateCheckoutNotes" rows="3" class="w-full border border-surface-border rounded-lg p-3 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-surface-text" placeholder="Masukkan detail alasan keterlambatan checkout..."></textarea>
+                </div>
+
+            </div>
+            
+            <div class="p-4 border-t border-surface-border bg-surface-bg flex items-center justify-center gap-3">
+                <button class="close-modal-btn px-6 py-2.5 rounded-lg font-semibold border border-surface-border bg-white hover:bg-gray-50 text-surface-text transition-colors w-1/4">
+                    Batal
+                </button>
+                <button id="btnConfirmLateCheckout" disabled class="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 opacity-50 cursor-not-allowed transition-colors w-3/4 shadow-sm">
+                    <i data-lucide="receipt" class="w-4 h-4"></i>
+                    Simpan & Tagihkan Denda
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-surface-text text-white px-6 py-3 rounded-lg shadow-xl text-sm font-medium z-[100] hidden flex items-center gap-3">
+        <i data-lucide="circle-check" class="w-5 h-5 text-emerald-400" id="toastIcon"></i>
+        <span id="toastMessage">Success</span>
+    </div>
+
+    <!-- Edge Case Simulation Control Panel -->
+    <div class="fixed bottom-6 right-6 bg-white rounded-xl border border-surface-border shadow-xl z-[60] w-80 transition-all duration-300 group overflow-hidden">
+        <div class="w-full flex items-center justify-between p-4 bg-white group-hover:bg-brand-50 cursor-pointer transition-colors border-b border-transparent group-hover:border-surface-border">
+            <div class="flex items-center gap-2">
+                <i data-lucide="settings-2" class="w-4 h-4 text-brand-500"></i>
+                <h4 class="font-bold text-sm uppercase tracking-wider text-brand-500">Simulation</h4>
+            </div>
+            <i data-lucide="chevron-up" class="w-5 h-5 text-surface-textAlt group-hover:text-brand-500 transition-transform duration-300 group-hover:rotate-180"></i>
+        </div>
+        
+        <div class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-in-out">
+            <div class="overflow-hidden">
+                <div class="px-5 pb-5 pt-4 flex flex-col gap-5 bg-white border-t border-surface-border">
+                    
+                    <!-- Role Switcher -->
+                    <div>
+                        <span class="text-sm font-semibold text-surface-text block mb-3">Role Check (RBAC Test)</span>
+                        <div class="bg-surface-bg border border-surface-border p-1 rounded-lg flex text-xs font-semibold">
+                            <button class="flex-1 py-1.5 rounded-md bg-white text-brand-500 shadow-sm border border-surface-border transition-colors">Admin</button>
+                            <button id="simRoleMember" class="flex-1 py-1.5 rounded-md text-surface-textAlt hover:text-surface-text transition-colors" title="Simulates non-admin access">Member</button>
+                        </div>
+                        <p class="text-[10px] text-surface-textAlt mt-1.5">Switching to Member will auto-redirect.</p>
+                    </div>
+                    
+                    <!-- System-Wide IoT Outage -->
+                    <label class="flex items-start gap-3 cursor-pointer hover:opacity-80 pt-4 border-t border-surface-border">
+                        <input type="checkbox" id="simOutage" class="mt-0.5 shrink-0" style="appearance: none; width: 20px; height: 20px; border: 1px solid #c3c6d7; border-radius: 4px; background-color: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <div>
+                            <span class="text-sm font-semibold text-surface-text block">IoT Outage (Global)</span>
+                            <span class="text-xs text-surface-textAlt block mt-0.5 leading-tight">Simulate IOT_GATEWAY_OFFLINE system-wide</span>
+                        </div>
+                    </label>
+
+                    <!-- Emergency Protocol -->
+                    <label class="flex items-start gap-3 cursor-pointer hover:opacity-80 pt-2 border-t border-surface-border">
+                        <input type="checkbox" id="simEmergency" class="mt-0.5 shrink-0" style="appearance: none; width: 20px; height: 20px; border: 1px solid #c3c6d7; border-radius: 4px; background-color: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <div>
+                            <span class="text-sm font-semibold text-surface-text block">Emergency Protocol</span>
+                            <span class="text-xs text-surface-textAlt block mt-0.5 leading-tight">Unlock all doors, broadcast warning</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hack for custom checkbox styling -->
+    <style>
+        #simOutage:checked, #simEmergency:checked {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+            background-size: 12px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        // --- Modals Logic ---
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalOverride = document.getElementById('modalOverride');
+        const modalLateCheckout = document.getElementById('modalLateCheckout');
+
+        function openModal(modalEl) {
+            modalOverride.classList.add('hidden');
+            modalOverride.classList.remove('flex');
+            modalLateCheckout.classList.add('hidden');
+            modalLateCheckout.classList.remove('flex');
+
+            modalOverlay.classList.remove('hidden');
+            modalOverlay.classList.add('flex');
+            
+            modalEl.classList.remove('hidden');
+            modalEl.classList.add('flex');
+
+            setTimeout(() => {
+                modalOverlay.classList.remove('opacity-0');
+                modalEl.classList.remove('scale-95');
+                modalEl.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModals() {
+            modalOverlay.classList.add('opacity-0');
+            const activeModal = modalOverride.classList.contains('flex') ? modalOverride : modalLateCheckout;
+            
+            if (activeModal) {
+                activeModal.classList.remove('scale-100');
+                activeModal.classList.add('scale-95');
+            }
+
+            setTimeout(() => {
+                modalOverlay.classList.remove('flex');
+                modalOverlay.classList.add('hidden');
+                
+                // Reset states
+                document.getElementById('overrideReason').value = '';
+                btnConfirmOverride.disabled = true;
+                btnConfirmOverride.classList.add('opacity-50', 'cursor-not-allowed');
+                btnConfirmOverride.classList.remove('hover:bg-danger-700');
+
+                document.getElementById('lateCheckoutNotes').value = '';
+                btnConfirmLateCheckout.disabled = true;
+                btnConfirmLateCheckout.classList.add('opacity-50', 'cursor-not-allowed');
+                btnConfirmLateCheckout.classList.remove('opacity-100');
+            }, 300);
+        }
+
+        document.querySelectorAll('.close-modal-btn').forEach(btn => {
+            btn.addEventListener('click', closeModals);
+        });
+
+        // 1. Manual Override
+        const btnManualOverrides = document.querySelectorAll('.btn-manual-override');
+        btnManualOverrides.forEach(btn => {
+            btn.addEventListener('click', () => openModal(modalOverride));
+        });
+
+        const overrideReason = document.getElementById('overrideReason');
+        const btnConfirmOverride = document.getElementById('btnConfirmOverride');
+
+        overrideReason.addEventListener('change', () => {
+            if (overrideReason.value !== '') {
+                btnConfirmOverride.disabled = false;
+                btnConfirmOverride.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnConfirmOverride.classList.add('hover:bg-danger-700');
+            }
+        });
+
+        btnConfirmOverride.addEventListener('click', () => {
+            closeModals();
+            showToast("Sinyal unlock berhasil dikirim ke Smart Lock [Ruang 201 (Medium)]", "success");
+        });
+
+        // 2. Late Checkout
+        const btnActionLateCheckout = document.getElementById('btnActionLateCheckout');
+        btnActionLateCheckout.addEventListener('click', () => openModal(modalLateCheckout));
+
+        const lateCheckoutNotes = document.getElementById('lateCheckoutNotes');
+        const btnConfirmLateCheckout = document.getElementById('btnConfirmLateCheckout');
+
+        lateCheckoutNotes.addEventListener('input', () => {
+            if (lateCheckoutNotes.value.trim().length > 5) {
+                btnConfirmLateCheckout.disabled = false;
+                btnConfirmLateCheckout.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnConfirmLateCheckout.classList.add('opacity-100');
+            } else {
+                btnConfirmLateCheckout.disabled = true;
+                btnConfirmLateCheckout.classList.add('opacity-50', 'cursor-not-allowed');
+                btnConfirmLateCheckout.classList.remove('opacity-100');
+            }
+        });
+
+        btnConfirmLateCheckout.addEventListener('click', () => {
+            closeModals();
+            showToast("Pengembalian dana / denda sebesar Rp 281.250 berhasil diproses.", "success");
+        });
+
+        // --- Toast Logic ---
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+        let toastTimeout;
+        
+        function showToast(message, type="success") {
+            toastMessage.innerText = message;
+            
+            if (type === "success") {
+                toastIcon.setAttribute("data-lucide", "circle-check");
+                toastIcon.className = "w-5 h-5 text-emerald-400";
+                toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-surface-text text-white px-6 py-3 rounded-lg shadow-xl text-sm font-medium z-[100] hidden flex items-center gap-3";
+            } else if (type === "error" || type === "warning") {
+                toastIcon.setAttribute("data-lucide", "triangle-alert");
+                toastIcon.className = "w-5 h-5 text-danger-400";
+                toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-danger-600 text-white px-6 py-3 rounded-lg shadow-xl text-sm font-medium z-[100] hidden flex items-center gap-3";
+            }
+            lucide.createIcons();
+            
+            toast.classList.remove('hidden');
+            toast.classList.add('toast-enter');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('hidden');
+            }, 4000);
+        }
+
+        // --- Simulation Panel Logic ---
+
+        // RBAC Redirect Simulation
+        document.getElementById('simRoleMember').addEventListener('click', () => {
+            window.location.href = '/'; // Redirect non-admin to catalog
+        });
+
+        // Global Alerts & Outages State
+        const simOutage = document.getElementById('simOutage');
+        const simEmergency = document.getElementById('simEmergency');
+        
+        const globalAlertBanner = document.getElementById('globalAlertBanner');
+        const globalAlertTitle = document.getElementById('globalAlertTitle');
+        const globalAlertDesc = document.getElementById('globalAlertDesc');
+        
+        const kpiHardware = document.getElementById('kpiHardware');
+        const kpiHardwareTitle = document.getElementById('kpiHardwareTitle');
+        const kpiHardwareIconBg = document.getElementById('kpiHardwareIconBg');
+        const kpiHardwareCount = document.getElementById('kpiHardwareCount');
+        const kpiHardwareDesc = document.getElementById('kpiHardwareDesc');
+        const linkHardware = document.getElementById('linkHardware');
+
+        const alertFeedContainer = document.getElementById('alertFeedContainer');
+        const alertNormalState = document.getElementById('alertNormalState');
+        const topbarAlertBadge = document.getElementById('topbarAlertBadge');
+        
+        const systemStatusSidebar = document.getElementById('systemStatusSidebar');
+        const systemStatusDot = document.getElementById('systemStatusDot');
+        const systemStatusText = document.getElementById('systemStatusText');
+
+        function updateSystemState() {
+            let isOutage = simOutage.checked;
+            let isEmergency = simEmergency.checked;
+            
+            // 1. Global Banner
+            if (isEmergency) {
+                globalAlertBanner.classList.remove('hidden');
+                globalAlertBanner.classList.remove('bg-danger-500');
+                globalAlertBanner.classList.add('bg-danger-600');
+                globalAlertTitle.innerText = "EMERGENCY PROTOCOL ACTIVE";
+                globalAlertDesc.innerText = "Seluruh pintu dibuka secara paksa (UNLOCKED). Evakuasi diutamakan.";
+            } else if (isOutage) {
+                globalAlertBanner.classList.remove('hidden');
+                globalAlertBanner.classList.add('bg-danger-500');
+                globalAlertBanner.classList.remove('bg-danger-600');
+                globalAlertTitle.innerText = "Peringatan Sistem: Gateway IoT utama terputus.";
+                globalAlertDesc.innerText = "Kontrol otomatis nonaktif. Seluruh ruangan masuk mode fallback.";
+            } else {
+                globalAlertBanner.classList.add('hidden');
+            }
+
+            // 2. Hardware KPI Card
+            if (isOutage || isEmergency) {
+                kpiHardware.className = "bg-danger-50 rounded-xl border border-danger-100 p-5 shadow-flat-plus flex flex-col justify-between h-36 transition-colors duration-300";
+                kpiHardwareTitle.className = "text-sm font-medium text-danger-700 leading-tight";
+                kpiHardwareIconBg.className = "w-8 h-8 rounded-lg bg-danger-600 flex items-center justify-center text-white";
+                kpiHardwareCount.className = "text-2xl font-bold text-danger-700 mb-1";
+                kpiHardwareCount.innerText = isEmergency ? "ALL OVERRIDE" : "12 Offline";
+                kpiHardwareDesc.className = "text-xs font-medium text-danger-600/80 leading-tight";
+                kpiHardwareDesc.innerText = isEmergency ? "Doors unlocked manually" : "Gateway connectivity lost";
+                
+                linkHardware.className = "bg-white border-l-4 border-l-danger-500 border-y border-r border-surface-border hover:shadow-md p-4 rounded-xl flex items-center justify-between group transition-all";
+                
+                alertFeedContainer.classList.remove('hidden');
+                alertFeedContainer.classList.add('flex');
+                alertNormalState.classList.add('hidden');
+                alertNormalState.classList.remove('flex');
+                topbarAlertBadge.classList.remove('hidden');
+                topbarAlertBadge.classList.add('flex');
+                
+                // Sidebar status
+                systemStatusDot.className = "w-2 h-2 rounded-full bg-danger-500";
+                systemStatusText.innerText = isEmergency ? "Emergency Mode" : "System Degraded";
+                systemStatusText.className = "text-sm font-bold text-danger-600";
+            } else {
+                // Normal State
+                kpiHardware.className = "bg-white rounded-xl border border-surface-border p-5 shadow-flat-plus flex flex-col justify-between h-36 transition-colors duration-300";
+                kpiHardwareTitle.className = "text-sm font-medium text-surface-textAlt leading-tight";
+                kpiHardwareIconBg.className = "w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-500";
+                kpiHardwareCount.className = "text-2xl font-bold mb-1 text-surface-text";
+                kpiHardwareCount.innerText = "0 Offline";
+                kpiHardwareDesc.className = "text-xs font-medium text-surface-textAlt leading-tight";
+                kpiHardwareDesc.innerText = "Semua gateway terhubung";
+                
+                linkHardware.className = "bg-white border border-surface-border hover:border-brand-500 hover:shadow-md p-4 rounded-xl flex items-center justify-between group transition-all";
+                
+                alertFeedContainer.classList.add('hidden');
+                alertFeedContainer.classList.remove('flex');
+                alertNormalState.classList.remove('hidden');
+                alertNormalState.classList.add('flex');
+                topbarAlertBadge.classList.add('hidden');
+                topbarAlertBadge.classList.remove('flex');
+
+                // Sidebar status
+                systemStatusDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+                systemStatusText.innerText = "System Active";
+                systemStatusText.className = "text-sm font-medium text-surface-textAlt";
+            }
+        }
+
+        simOutage.addEventListener('change', updateSystemState);
+        simEmergency.addEventListener('change', updateSystemState);
+
+        document.getElementById('btnDismissGlobalAlert').addEventListener('click', () => {
+            globalAlertBanner.classList.add('hidden');
+        });
+
+        // Emergency Lockdown Button (Sidebar)
+        document.getElementById('btnEmergencyLockdown').addEventListener('click', () => {
+            simEmergency.checked = true;
+            updateSystemState();
+            showToast("Emergency Protocol Initiated!", "error");
+        });
+
+    </script>
+</body>
+</html>

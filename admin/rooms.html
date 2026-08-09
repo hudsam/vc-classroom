@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Management - SmartRoom OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f2f3ff',
+                            100: '#eaedff',
+                            200: '#dae2fd',
+                            300: '#b4c5ff',
+                            400: '#2563eb',
+                            500: '#004ac6',
+                            600: '#003ea8',
+                            900: '#00174b',
+                        },
+                        surface: {
+                            DEFAULT: '#ffffff',
+                            dim: '#d2d9f4',
+                            bg: '#faf8ff',
+                            border: '#e0e3e5',
+                            text: '#131b2e',
+                            textAlt: '#434655',
+                        },
+                        danger: {
+                            50: '#ffdad6',
+                            100: '#ffb4ab',
+                            500: '#ba1a1a',
+                            600: '#93000a',
+                            700: '#750006',
+                        },
+                        warning: {
+                            50: '#ffdbcd',
+                            100: '#ffb596',
+                            500: '#bc4800',
+                            600: '#943700',
+                            700: '#7d2d00',
+                        },
+                        success: {
+                            50: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    },
+                    boxShadow: {
+                        'flat-plus': '0px 4px 6px -1px rgba(0, 0, 0, 0.05), 0px 2px 4px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #faf8ff;
+            color: #131b2e;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Toggle Switch CSS */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: transparent;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #004ac6;
+        }
+        .toggle-checkbox:checked + .toggle-label:after {
+            transform: translateX(100%);
+            border-color: white;
+        }
+        .toggle-label {
+            width: 2.75rem;
+            height: 1.5rem;
+            background-color: #c3c6d7;
+            border-radius: 9999px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .toggle-label:after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Toast Animation */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px) translateX(-50%); }
+            to { opacity: 1; transform: translateY(0) translateX(-50%); }
+        }
+        .toast-enter {
+            animation: slideUpFade 0.3s ease-out forwards;
+        }
+
+        /* Dropdown Animation */
+        .dropdown-enter {
+            opacity: 1 !important;
+            transform: scale(1) translateY(0) !important;
+            pointer-events: auto !important;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-surface-bg border-r border-surface-border flex flex-col shrink-0">
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-surface-text tracking-tight">SmartRoom OS</h1>
+            <div class="text-xs font-medium text-surface-textAlt mt-0.5">Enterprise Console</div>
+            
+            <button class="w-full mt-6 bg-brand-500 hover:bg-brand-600 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                New Booking
+            </button>
+        </div>
+        
+        <nav class="flex-1 px-4 py-2 flex flex-col gap-1 overflow-y-auto">
+            <a href="/admin/dashboard.html" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">Dashboard</span>
+            </a>
+            <a href="/admin/rooms.html" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-brand-500 text-white shadow-sm font-semibold transition-colors">
+                <i data-lucide="door-open" class="w-5 h-5"></i>
+                <span class="text-sm">Room Management</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="router" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">Hardware Status</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="scroll-text" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">System Logs</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">Analytics</span>
+            </a>
+        </nav>
+
+        <div class="p-4 mt-auto border-t border-surface-border flex flex-col gap-1">
+            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="headphones" class="w-4 h-4"></i>
+                <span class="text-sm font-medium">Support</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg text-surface-textAlt hover:bg-brand-50 hover:text-surface-text transition-colors">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span class="text-sm font-medium">Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-white">
+        
+        <!-- Topbar -->
+        <header class="h-16 border-b border-surface-border flex items-center justify-between px-6 shrink-0 bg-white z-10">
+            <div class="relative w-96 max-w-md hidden md:block">
+                <i data-lucide="search" class="w-4 h-4 text-surface-textAlt absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" placeholder="Search..." class="w-full bg-surface-bg border border-surface-border rounded-full pl-9 pr-4 py-1.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+            </div>
+
+            <div class="flex items-center gap-4 ml-auto">
+                <div class="bg-brand-500 text-white px-3 py-1 rounded-full flex items-center gap-1.5 text-xs font-bold shadow-sm">
+                    <span>System Healthy</span>
+                </div>
+                
+                <button class="text-surface-textAlt hover:text-surface-text transition-colors relative">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </button>
+                <button class="text-surface-textAlt hover:text-surface-text transition-colors">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                <button class="text-surface-textAlt hover:text-surface-text transition-colors">
+                    <i data-lucide="help-circle" class="w-5 h-5"></i>
+                </button>
+                
+                <div class="w-px h-6 bg-surface-border mx-2"></div>
+                
+                <div class="w-8 h-8 rounded-full bg-surface-dim overflow-hidden border border-surface-border cursor-pointer">
+                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=004ac6&color=fff" alt="User" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8 bg-surface-bg">
+            <div class="max-w-6xl mx-auto">
+                
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-8">
+                    <div>
+                        <div class="flex items-center gap-2 text-xs font-bold text-surface-textAlt tracking-wider uppercase mb-3">
+                            <a href="#" class="hover:text-brand-500 transition-colors">Admin Portal</a>
+                            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                            <span>Operasional</span>
+                            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                            <span class="text-brand-500">Manajemen Ruangan</span>
+                        </div>
+                        <h2 class="text-3xl font-bold text-surface-text mb-2 tracking-tight">Manajemen Ruangan & Hardware Config</h2>
+                        <p class="text-surface-textAlt">Kelola ketersediaan studio, harga per jam, fasilitas, dan status operasional.</p>
+                    </div>
+                    <button class="btn-add-room bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-sm shrink-0 h-fit">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Tambah Ruangan Baru
+                    </button>
+                </div>
+
+                <!-- Table Card -->
+                <div class="bg-white border border-surface-border rounded-xl shadow-flat-plus overflow-hidden flex flex-col">
+                    
+                    <!-- Toolbar -->
+                    <div class="p-4 border-b border-surface-border flex flex-wrap items-center justify-between gap-4 bg-white">
+                        <div class="relative w-full md:w-80">
+                            <i data-lucide="search" class="w-4 h-4 text-surface-textAlt absolute left-3 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" placeholder="Cari nama ruangan atau lokasi..." class="w-full border border-surface-border rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all text-surface-text placeholder:text-surface-textAlt">
+                        </div>
+                        <div class="flex items-center gap-3 w-full md:w-auto">
+                            <select class="border border-surface-border rounded-lg px-4 py-2 text-sm font-medium text-surface-textAlt focus:outline-none focus:border-brand-500 bg-white cursor-pointer hover:bg-surface-bg transition-colors">
+                                <option>Semua Status</option>
+                                <option>Tersedia</option>
+                                <option>Terkunci</option>
+                                <option>Maintenance</option>
+                            </select>
+                            <select class="border border-surface-border rounded-lg px-4 py-2 text-sm font-medium text-surface-textAlt focus:outline-none focus:border-brand-500 bg-white cursor-pointer hover:bg-surface-bg transition-colors">
+                                <option>Semua Kapasitas</option>
+                                <option>Small</option>
+                                <option>Medium</option>
+                                <option>Large</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-white border-b border-surface-border text-xs font-bold text-surface-textAlt uppercase tracking-wider">
+                                    <th class="px-6 py-4">Nama & Lokasi</th>
+                                    <th class="px-6 py-4">Tipe & Kapasitas</th>
+                                    <th class="px-6 py-4">Harga per Jam</th>
+                                    <th class="px-6 py-4">Fasilitas Aktif</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4">Maintenance</th>
+                                    <th class="px-6 py-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-surface-border text-sm">
+                                
+                                <!-- Row 1: Alpha -->
+                                <tr class="hover:bg-surface-bg transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-surface-text mb-1">Alpha Strategy Room</div>
+                                        <div class="text-xs text-surface-textAlt">Lantai 4</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="bg-surface-border text-surface-textAlt px-3 py-1 rounded-full text-xs font-bold inline-block">
+                                            Medium (Maks 15)
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-surface-text">
+                                        Rp 250.000 / jam
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <span class="border border-surface-border rounded px-2 py-0.5 text-[10px] font-medium text-surface-textAlt">Smart Board</span>
+                                            <span class="border border-surface-border rounded px-2 py-0.5 text-[10px] font-medium text-surface-textAlt">Multi-Cam AI</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div id="statusAlpha" class="bg-success-50 text-success-700 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 text-xs font-bold">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-success-500"></div>
+                                            <span>Tersedia</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="relative inline-block w-11 mr-2 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" id="toggleAlpha" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer opacity-0"/>
+                                            <label for="toggleAlpha" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center relative">
+                                        <button class="btn-action p-1.5 rounded-md text-surface-textAlt hover:bg-surface-border hover:text-surface-text transition-colors">
+                                            <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                                        </button>
+                                        <!-- Dropdown Menu -->
+                                        <div class="dropdown-menu absolute right-8 top-10 bg-white border border-surface-border shadow-lg rounded-lg py-1 w-48 text-left z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                            <button class="btn-diagnostics w-full px-4 py-2 text-sm text-surface-text hover:bg-surface-bg flex items-center gap-2 font-medium">
+                                                <i data-lucide="activity" class="w-4 h-4 text-surface-textAlt"></i> Diagnostics
+                                            </button>
+                                            <button class="btn-edit-room w-full px-4 py-2 text-sm text-surface-text hover:bg-surface-bg flex items-center gap-2 font-medium">
+                                                <i data-lucide="edit" class="w-4 h-4 text-surface-textAlt"></i> Edit Ruangan
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Row 2: Broadcast Pod 1 -->
+                                <tr class="hover:bg-surface-bg transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-surface-text mb-1">Broadcast Pod 1</div>
+                                        <div class="text-xs text-surface-textAlt">Lantai 2</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="bg-surface-border text-surface-textAlt px-3 py-1 rounded-full text-xs font-bold inline-block">
+                                            Small (Maks 4)
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-surface-text">
+                                        Rp 150.000 / jam
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <span class="border border-surface-border rounded px-2 py-0.5 text-[10px] font-medium text-surface-textAlt">Studio Podcasting</span>
+                                            <span class="border border-surface-border rounded px-2 py-0.5 text-[10px] font-medium text-surface-textAlt">Audio Array</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="bg-warning-50 text-warning-700 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 text-xs font-bold">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-warning-500"></div>
+                                            <span>Terkunci</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="relative inline-block w-11 mr-2 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" id="toggleBroadcast" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer opacity-0"/>
+                                            <label for="toggleBroadcast" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center relative">
+                                        <button class="btn-action p-1.5 rounded-md text-surface-textAlt hover:bg-surface-border hover:text-surface-text transition-colors">
+                                            <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                                        </button>
+                                        <!-- Dropdown Menu -->
+                                        <div class="dropdown-menu absolute right-8 top-10 bg-white border border-surface-border shadow-lg rounded-lg py-1 w-48 text-left z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                            <button class="btn-diagnostics w-full px-4 py-2 text-sm text-surface-text hover:bg-surface-bg flex items-center gap-2 font-medium">
+                                                <i data-lucide="activity" class="w-4 h-4 text-surface-textAlt"></i> Diagnostics
+                                            </button>
+                                            <button class="btn-edit-room w-full px-4 py-2 text-sm text-surface-text hover:bg-surface-bg flex items-center gap-2 font-medium">
+                                                <i data-lucide="edit" class="w-4 h-4 text-surface-textAlt"></i> Edit Ruangan
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Row 3: Gamma Workshop -->
+                                <tr class="bg-surface-container opacity-75 hover:opacity-100 transition-opacity">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-surface-text mb-1">Gamma Workshop</div>
+                                        <div class="text-xs text-surface-textAlt">Lantai 1</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="bg-surface-border text-surface-textAlt px-3 py-1 rounded-full text-xs font-bold inline-block">
+                                            Large (Maks 50)
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 font-medium text-surface-text">
+                                        Rp 350.000 / jam
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <span class="border border-surface-border rounded px-2 py-0.5 text-[10px] font-medium text-surface-textAlt">Smart Board</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="bg-surface-dim text-surface-textAlt px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 text-xs font-bold">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-surface-textAlt"></div>
+                                            <span>Maintenance</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="relative inline-block w-11 mr-2 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" id="toggleGamma" checked class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer opacity-0"/>
+                                            <label for="toggleGamma" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center relative">
+                                        <button class="btn-action p-1.5 rounded-md text-surface-textAlt hover:bg-surface-border hover:text-surface-text transition-colors">
+                                            <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                                        </button>
+                                        <!-- Dropdown Menu -->
+                                        <div class="dropdown-menu absolute right-8 top-10 bg-white border border-surface-border shadow-lg rounded-lg py-1 w-48 text-left z-20 opacity-0 scale-95 pointer-events-none transition-all duration-200 origin-top-right">
+                                            <button class="btn-diagnostics w-full px-4 py-2 text-sm text-surface-text hover:bg-surface-bg flex items-center gap-2 font-medium">
+                                                <i data-lucide="activity" class="w-4 h-4 text-surface-textAlt"></i> Diagnostics
+                                            </button>
+                                            <button class="btn-edit-room w-full px-4 py-2 text-sm text-surface-text hover:bg-surface-bg flex items-center gap-2 font-medium">
+                                                <i data-lucide="edit" class="w-4 h-4 text-surface-textAlt"></i> Edit Ruangan
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="p-4 border-t border-surface-border flex items-center justify-between bg-surface-bg text-sm">
+                        <span class="text-surface-textAlt font-medium">Menampilkan 1-3 dari 24 ruangan</span>
+                        <div class="flex items-center gap-1">
+                            <button class="w-8 h-8 flex items-center justify-center rounded-lg text-surface-textAlt hover:bg-surface-border transition-colors"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                            <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-brand-500 text-white font-bold">1</button>
+                            <button class="w-8 h-8 flex items-center justify-center rounded-lg text-surface-text hover:bg-surface-border font-medium transition-colors">2</button>
+                            <button class="w-8 h-8 flex items-center justify-center rounded-lg text-surface-text hover:bg-surface-border font-medium transition-colors">3</button>
+                            <button class="w-8 h-8 flex items-center justify-center rounded-lg text-surface-textAlt hover:bg-surface-border transition-colors"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Overlay & Modals -->
+    <div id="modalOverlay" class="fixed inset-0 bg-surface-text/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        
+        <!-- Form Modal: Tambah/Edit Ruangan -->
+        <div id="modalForm" class="hidden bg-white rounded-xl shadow-2xl w-full max-w-2xl transform scale-95 transition-transform duration-300 flex-col overflow-hidden my-auto">
+            <div class="px-6 py-5 border-b border-surface-border flex items-center justify-between bg-white">
+                <h3 class="text-lg font-bold text-surface-text">Tambah / Edit Ruangan Studio</h3>
+                <button class="close-modal-btn text-surface-textAlt hover:text-surface-text transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-5 overflow-y-auto max-h-[70vh]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-surface-textAlt mb-1.5">Nama Ruangan <span class="text-danger-500">*</span></label>
+                        <input type="text" placeholder="Contoh: Broadcast Studio Pod 1" class="w-full border border-surface-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-surface-text">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-surface-textAlt mb-1.5">Lokasi & Lantai</label>
+                        <input type="text" placeholder="Contoh: Lantai 3, Gedung Utama" class="w-full border border-surface-border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-surface-text">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-surface-textAlt mb-1.5">Tipe Ruangan & Kapasitas</label>
+                        <div class="relative">
+                            <select class="w-full border border-surface-border rounded-lg pl-4 pr-10 py-2.5 text-sm appearance-none focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 bg-white text-surface-text cursor-pointer">
+                                <option>Small - Maks 10 orang</option>
+                                <option>Medium - Maks 30 orang</option>
+                                <option>Large - Maks 50 orang</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-surface-textAlt absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-surface-textAlt mb-1.5">Tarif Sewa per Jam (IDR) <span class="text-danger-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-surface-textAlt font-medium">Rp</span>
+                            <input type="number" placeholder="150000" class="w-full border border-surface-border rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-surface-text">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <label class="block text-xs font-bold text-surface-textAlt mb-3">Fasilitas Hardware Tersedia</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 rounded border-surface-border text-brand-500 focus:ring-brand-500 bg-white">
+                            <span class="text-sm font-medium text-surface-text group-hover:text-brand-600 transition-colors">Smart Board Interaktif</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 rounded border-surface-border text-brand-500 focus:ring-brand-500 bg-white">
+                            <span class="text-sm font-medium text-surface-text group-hover:text-brand-600 transition-colors">Multi-Cam AI Tracking</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 rounded border-surface-border text-brand-500 focus:ring-brand-500 bg-white">
+                            <span class="text-sm font-medium text-surface-text group-hover:text-brand-600 transition-colors">Studio Podcasting Equipment</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 rounded border-surface-border text-brand-500 focus:ring-brand-500 bg-white">
+                            <span class="text-sm font-medium text-surface-text group-hover:text-brand-600 transition-colors">Audio Array Ceiling Mic</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <label class="block text-xs font-bold text-surface-textAlt mb-3">Status Operasional Initial</label>
+                    <div class="flex items-center gap-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="statusInit" checked class="w-4 h-4 border-surface-border text-brand-500 focus:ring-brand-500 bg-white">
+                            <span class="text-sm font-medium text-surface-text">Available / Operational</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="statusInit" class="w-4 h-4 border-surface-border text-brand-500 focus:ring-brand-500 bg-white">
+                            <span class="text-sm font-medium text-surface-text">Maintenance Mode</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Advanced Config (Super Admin Only) -->
+                <div id="advancedConfig" class="mt-4 pt-4 border-t border-surface-border">
+                    <label class="block text-xs font-bold text-danger-600 mb-3 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="lock" class="w-3.5 h-3.5"></i> Super Admin Config: IoT Hardware Mapping</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-surface-textAlt mb-1">Smart Lock Gateway ID / Topic</label>
+                            <input type="text" placeholder="e.g. SL-ROOM-201" class="w-full border border-surface-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-brand-500 text-surface-text">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-surface-textAlt mb-1">Camera Controller IP</label>
+                            <input type="text" placeholder="192.168.1.x" class="w-full border border-surface-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-brand-500 text-surface-text">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-surface-border bg-surface-bg flex items-center justify-between">
+                <button id="btnDeleteRoom" class="text-danger-600 hover:bg-danger-50 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Ruangan
+                </button>
+                <div class="flex items-center gap-3">
+                    <button class="close-modal-btn px-6 py-2 rounded-lg text-sm font-semibold border border-surface-border bg-white text-surface-text hover:bg-gray-50 transition-colors">
+                        Batal
+                    </button>
+                    <button class="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-sm transition-colors" onclick="submitForm()">
+                        Simpan Ruangan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Confirmation Modal -->
+        <div id="modalMaintenance" class="hidden bg-white rounded-xl shadow-2xl w-full max-w-lg transform scale-95 transition-transform duration-300 flex-col overflow-hidden m-auto">
+            <div class="px-6 py-5 border-b border-surface-border flex items-center justify-between">
+                <h3 class="text-lg font-bold text-surface-text">Aktifkan Mode Maintenance?</h3>
+                <button class="close-modal-btn text-surface-textAlt hover:text-surface-text transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-5">
+                <div class="bg-warning-50 border border-warning-100 text-warning-700 p-4 rounded-lg flex gap-3 text-sm">
+                    <i data-lucide="triangle-alert" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                    <p>Ruangan ini akan disembunyikan secara otomatis dari Katalog Publik (/catalog). Sesi booking yang sudah berjalan atau terkonfirmasi tidak akan terbatalkan secara otomatis.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-surface-text mb-2">Catatan Maintenance / Alasan</label>
+                    <textarea id="maintenanceNotes" rows="3" class="w-full border border-surface-border rounded-lg p-3 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-surface-text" placeholder="Perbaikan rutin jaringan IoT Smart Lock..."></textarea>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-surface-border bg-surface-bg flex items-center justify-center gap-3">
+                <button class="close-modal-btn w-1/2 px-6 py-2.5 rounded-lg text-sm font-semibold bg-brand-50 text-brand-600 hover:bg-brand-100 transition-colors">
+                    Batal
+                </button>
+                <button id="btnConfirmMaintenance" class="w-1/2 bg-danger-600 hover:bg-danger-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-sm transition-colors">
+                    Ya, Menonaktifkan Ruangan
+                </button>
+            </div>
+        </div>
+
+        <!-- Diagnostics Modal -->
+        <div id="modalDiagnostics" class="hidden bg-white rounded-xl shadow-2xl w-full max-w-md transform scale-95 transition-transform duration-300 flex-col overflow-hidden m-auto">
+            <div class="px-6 py-5 border-b border-surface-border flex items-center justify-between">
+                <h3 class="text-lg font-bold text-surface-text flex items-center gap-2"><i data-lucide="activity" class="w-5 h-5 text-brand-500"></i> Device Health Check</h3>
+                <button class="close-modal-btn text-surface-textAlt hover:text-surface-text transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-4">
+                <div class="text-sm font-semibold text-surface-text mb-2" id="diagRoomName">Target: Alpha Strategy Room</div>
+                
+                <div class="border border-surface-border rounded-lg divide-y divide-surface-border">
+                    <div class="p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="key" class="w-4 h-4 text-surface-textAlt"></i>
+                            <span class="text-sm font-medium text-surface-text">Smart Lock Gateway</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-success-600 bg-success-50 px-2 py-1 rounded">
+                            <div class="w-1.5 h-1.5 rounded-full bg-success-500"></div> ONLINE <span class="text-success-700 font-normal">(12ms)</span>
+                        </div>
+                    </div>
+                    <div class="p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="camera" class="w-4 h-4 text-surface-textAlt"></i>
+                            <span class="text-sm font-medium text-surface-text">AI Camera Controller</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-success-600 bg-success-50 px-2 py-1 rounded">
+                            <div class="w-1.5 h-1.5 rounded-full bg-success-500"></div> ONLINE <span class="text-success-700 font-normal">(24ms)</span>
+                        </div>
+                    </div>
+                    <div class="p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="mic" class="w-4 h-4 text-surface-textAlt"></i>
+                            <span class="text-sm font-medium text-surface-text">Audio Array System</span>
+                        </div>
+                        <div id="diagAudioStatus" class="flex items-center gap-1.5 text-xs font-bold text-success-600 bg-success-50 px-2 py-1 rounded">
+                            <div class="w-1.5 h-1.5 rounded-full bg-success-500"></div> ONLINE
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-surface-border bg-surface-bg flex items-center">
+                <button class="w-full bg-white border border-surface-border hover:bg-surface-bg text-surface-text px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Re-sync IoT Gateway
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-surface-text text-white px-6 py-3 rounded-lg shadow-xl text-sm font-medium z-[100] hidden flex items-center gap-3">
+        <i data-lucide="circle-check" class="w-5 h-5 text-emerald-400" id="toastIcon"></i>
+        <span id="toastMessage">Success</span>
+    </div>
+
+    <!-- Edge Case Simulation Control Panel -->
+    <div class="fixed bottom-6 right-6 bg-white rounded-xl border border-surface-border shadow-xl z-[60] w-80 transition-all duration-300 group overflow-hidden">
+        <div class="w-full flex items-center justify-between p-4 bg-white group-hover:bg-brand-50 cursor-pointer transition-colors border-b border-transparent group-hover:border-surface-border">
+            <div class="flex items-center gap-2">
+                <i data-lucide="settings-2" class="w-4 h-4 text-brand-500"></i>
+                <h4 class="font-bold text-sm uppercase tracking-wider text-brand-500">Simulation</h4>
+            </div>
+            <i data-lucide="chevron-up" class="w-5 h-5 text-surface-textAlt group-hover:text-brand-500 transition-transform duration-300 group-hover:rotate-180"></i>
+        </div>
+        
+        <div class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-in-out">
+            <div class="overflow-hidden">
+                <div class="px-5 pb-5 pt-4 flex flex-col gap-5 bg-white border-t border-surface-border">
+                    
+                    <!-- RBAC Switch -->
+                    <div>
+                        <span class="text-sm font-semibold text-surface-text block mb-3">Role Check (RBAC Test)</span>
+                        <div class="bg-surface-bg border border-surface-border p-1 rounded-lg flex text-xs font-semibold mb-2">
+                            <button id="btnRoleSuper" class="flex-1 py-1.5 rounded-md bg-white text-brand-500 shadow-sm border border-surface-border transition-colors">Super Admin</button>
+                            <button id="btnRoleStudio" class="flex-1 py-1.5 rounded-md text-surface-textAlt hover:text-surface-text transition-colors">Studio Admin</button>
+                        </div>
+                        <div class="bg-surface-bg border border-surface-border p-1 rounded-lg flex text-xs font-semibold">
+                            <button id="btnRoleMember" class="flex-1 py-1.5 rounded-md text-surface-textAlt hover:text-surface-text transition-colors">Guest / Member</button>
+                        </div>
+                    </div>
+                    
+                    <!-- IoT Fault -->
+                    <label class="flex items-start gap-3 cursor-pointer hover:opacity-80 pt-4 border-t border-surface-border">
+                        <input type="checkbox" id="simIotFault" class="mt-0.5 shrink-0" style="appearance: none; width: 20px; height: 20px; border: 1px solid #c3c6d7; border-radius: 4px; background-color: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <div>
+                            <span class="text-sm font-semibold text-surface-text block">IoT Hardware Fault</span>
+                            <span class="text-xs text-surface-textAlt block mt-0.5 leading-tight">Alpha Room jadi Offline (Merah)</span>
+                        </div>
+                    </label>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hack for custom checkbox styling -->
+    <style>
+        #simIotFault:checked {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+            background-size: 12px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        // --- Modals Logic ---
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalForm = document.getElementById('modalForm');
+        const modalMaintenance = document.getElementById('modalMaintenance');
+        const modalDiagnostics = document.getElementById('modalDiagnostics');
+
+        let currentToggleInput = null; // Store reference to the toggle being clicked
+
+        function openModal(modalEl) {
+            // Hide all first
+            modalForm.classList.add('hidden');
+            modalForm.classList.remove('flex');
+            modalMaintenance.classList.add('hidden');
+            modalMaintenance.classList.remove('flex');
+            modalDiagnostics.classList.add('hidden');
+            modalDiagnostics.classList.remove('flex');
+
+            modalOverlay.classList.remove('hidden');
+            modalOverlay.classList.add('flex');
+            
+            modalEl.classList.remove('hidden');
+            modalEl.classList.add('flex');
+
+            setTimeout(() => {
+                modalOverlay.classList.remove('opacity-0');
+                modalEl.classList.remove('scale-95');
+                modalEl.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModals() {
+            modalOverlay.classList.add('opacity-0');
+            const activeModal = modalForm.classList.contains('flex') ? modalForm : 
+                               (modalMaintenance.classList.contains('flex') ? modalMaintenance : modalDiagnostics);
+            
+            if (activeModal) {
+                activeModal.classList.remove('scale-100');
+                activeModal.classList.add('scale-95');
+            }
+
+            setTimeout(() => {
+                modalOverlay.classList.remove('flex');
+                modalOverlay.classList.add('hidden');
+            }, 300);
+        }
+
+        document.querySelectorAll('.close-modal-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // If closing maintenance modal without saving, revert the toggle visually
+                if (modalMaintenance.classList.contains('flex') && currentToggleInput) {
+                    currentToggleInput.checked = !currentToggleInput.checked; // Revert
+                }
+                closeModals();
+            });
+        });
+
+        // 1. Tambah / Edit Ruangan
+        document.querySelectorAll('.btn-add-room, .btn-edit-room').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // hide dropdown if it was from edit
+                document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('dropdown-enter'));
+                openModal(modalForm);
+            });
+        });
+
+        window.submitForm = function() {
+            closeModals();
+            showToast("Konfigurasi ruangan berhasil disimpan.", "success");
+        }
+
+        // 2. Diagnostics
+        document.querySelectorAll('.btn-diagnostics').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('dropdown-enter'));
+                
+                // Simulate fault display if Alpha room and fault is active
+                const tr = e.target.closest('tr');
+                const isAlpha = tr.querySelector('.font-bold').innerText.includes('Alpha');
+                const isFault = document.getElementById('simIotFault').checked;
+                
+                if (isAlpha && isFault) {
+                    document.getElementById('diagAudioStatus').innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-danger-500"></div> OFFLINE';
+                    document.getElementById('diagAudioStatus').className = 'flex items-center gap-1.5 text-xs font-bold text-danger-600 bg-danger-50 px-2 py-1 rounded';
+                } else {
+                    document.getElementById('diagAudioStatus').innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-success-500"></div> ONLINE';
+                    document.getElementById('diagAudioStatus').className = 'flex items-center gap-1.5 text-xs font-bold text-success-600 bg-success-50 px-2 py-1 rounded';
+                }
+                
+                document.getElementById('diagRoomName').innerText = "Target: " + tr.querySelector('.font-bold').innerText;
+                
+                openModal(modalDiagnostics);
+            });
+        });
+
+        // 3. Maintenance Toggle
+        const toggleAlpha = document.getElementById('toggleAlpha');
+        toggleAlpha.addEventListener('change', function(e) {
+            currentToggleInput = this;
+            if (this.checked) {
+                // Turning ON maintenance
+                openModal(modalMaintenance);
+            } else {
+                // Turning OFF maintenance
+                updateRoomStatus('Alpha Strategy Room', 'Tersedia');
+                showToast("Ruangan Alpha Strategy Room kembali aktif di katalog publik.", "success");
+            }
+        });
+
+        document.getElementById('btnConfirmMaintenance').addEventListener('click', () => {
+            closeModals();
+            updateRoomStatus('Alpha Strategy Room', 'Maintenance');
+            showToast("Ruangan Alpha Strategy Room berhasil diubah ke Mode Maintenance.", "success");
+        });
+
+        function updateRoomStatus(roomName, status) {
+            // Hardcoded for Alpha room for prototype simplicity
+            const statusBadge = document.getElementById('statusAlpha');
+            if (status === 'Maintenance') {
+                statusBadge.className = 'bg-surface-dim text-surface-textAlt px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 text-xs font-bold';
+                statusBadge.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-surface-textAlt"></div><span>Maintenance</span>';
+            } else if (status === 'Tersedia') {
+                statusBadge.className = 'bg-success-50 text-success-700 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 text-xs font-bold';
+                statusBadge.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-success-500"></div><span>Tersedia</span>';
+            } else if (status === 'Offline') {
+                statusBadge.className = 'bg-danger-50 text-danger-700 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 text-xs font-bold';
+                statusBadge.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-danger-500"></div><span>IoT Offline</span>';
+            }
+        }
+
+        // --- Dropdown Menu Logic ---
+        document.querySelectorAll('.btn-action').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = btn.nextElementSibling;
+                // close others
+                document.querySelectorAll('.dropdown-menu').forEach(el => {
+                    if (el !== dropdown) el.classList.remove('dropdown-enter');
+                });
+                dropdown.classList.toggle('dropdown-enter');
+            });
+        });
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('dropdown-enter'));
+        });
+
+        // --- Toast Logic ---
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+        let toastTimeout;
+        
+        function showToast(message, type="success") {
+            toastMessage.innerText = message;
+            toastIcon.className = "w-5 h-5 text-emerald-400";
+            toast.className = "fixed bottom-10 left-1/2 -translate-x-1/2 bg-surface-text text-white px-6 py-3 rounded-lg shadow-xl text-sm font-medium z-[100] hidden flex items-center gap-3";
+            lucide.createIcons();
+            
+            toast.classList.remove('hidden');
+            toast.classList.add('toast-enter');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('hidden');
+            }, 4000);
+        }
+
+        // --- Simulation Panel Logic ---
+
+        // RBAC Switch Simulation
+        const btnRoleSuper = document.getElementById('btnRoleSuper');
+        const btnRoleStudio = document.getElementById('btnRoleStudio');
+        const btnRoleMember = document.getElementById('btnRoleMember');
+        const advancedConfig = document.getElementById('advancedConfig');
+        const btnDeleteRoom = document.getElementById('btnDeleteRoom');
+
+        function setRole(role) {
+            btnRoleSuper.className = "flex-1 py-1.5 rounded-md text-surface-textAlt hover:text-surface-text transition-colors bg-transparent border-transparent shadow-none";
+            btnRoleStudio.className = "flex-1 py-1.5 rounded-md text-surface-textAlt hover:text-surface-text transition-colors bg-transparent border-transparent shadow-none";
+            
+            if (role === 'super') {
+                btnRoleSuper.className = "flex-1 py-1.5 rounded-md bg-white text-brand-500 shadow-sm border border-surface-border transition-colors";
+                advancedConfig.style.display = 'block';
+                btnDeleteRoom.style.display = 'flex';
+            } else if (role === 'studio') {
+                btnRoleStudio.className = "flex-1 py-1.5 rounded-md bg-white text-brand-500 shadow-sm border border-surface-border transition-colors";
+                advancedConfig.style.display = 'none';
+                btnDeleteRoom.style.display = 'none';
+            }
+        }
+
+        btnRoleSuper.addEventListener('click', () => setRole('super'));
+        btnRoleStudio.addEventListener('click', () => setRole('studio'));
+        btnRoleMember.addEventListener('click', () => {
+            window.location.href = '/rooms'; // Redirect non-admin to catalog
+        });
+
+        // IoT Hardware Fault Simulation
+        const simIotFault = document.getElementById('simIotFault');
+        simIotFault.addEventListener('change', () => {
+            if (simIotFault.checked) {
+                updateRoomStatus('Alpha Strategy Room', 'Offline');
+                document.getElementById('toggleAlpha').checked = false; // Turn off maintenance if it was on
+                document.getElementById('toggleAlpha').disabled = true; // Cannot maintenance an offline room directly maybe? 
+            } else {
+                updateRoomStatus('Alpha Strategy Room', 'Tersedia');
+                document.getElementById('toggleAlpha').disabled = false;
+            }
+        });
+
+    </script>
+</body>
+</html>

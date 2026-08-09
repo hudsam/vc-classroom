@@ -1,0 +1,8 @@
+{
+  "name": "VC-SCR",
+  "description": "Interactive HTML prototype for VC-SCR page with edge case simulations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

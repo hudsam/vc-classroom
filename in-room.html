@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-Room Web Controller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f2f3ff',
+                            100: '#eaedff',
+                            200: '#dae2fd',
+                            300: '#b4c5ff',
+                            400: '#2563eb',
+                            500: '#004ac6',
+                            600: '#003ea8',
+                            900: '#00174b',
+                        },
+                        surface: {
+                            DEFAULT: '#ffffff',
+                            dim: '#d2d9f4',
+                            bg: '#faf8ff',
+                            border: '#e0e3e5',
+                            text: '#131b2e',
+                            textAlt: '#434655',
+                        },
+                        danger: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                        },
+                        warning: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    boxShadow: {
+                        'flat-plus': '0px 4px 6px -1px rgba(0, 0, 0, 0.05), 0px 2px 4px -2px rgba(0, 0, 0, 0.05)',
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #faf8ff;
+            color: #131b2e;
+            -webkit-font-smoothing: antialiased;
+            /* Prevent pull-to-refresh on touch devices */
+            overscroll-behavior-y: none;
+            /* Disable text selection for touch app feel */
+            user-select: none;
+        }
+
+        /* Hide scrollbar for clean tablet UI */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Custom Toggle Switch */
+        .toggle-switch {
+            appearance: none;
+            width: 48px;
+            height: 28px;
+            background-color: #e0e3e5;
+            border-radius: 9999px;
+            position: relative;
+            cursor: pointer;
+            outline: none;
+            transition: background-color 0.2s;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .toggle-switch:checked {
+            background-color: #2563eb;
+        }
+        .toggle-switch:checked::after {
+            transform: translateX(20px);
+        }
+
+        /* Custom Radio Button for Cards */
+        .card-radio input[type="radio"] {
+            display: none;
+        }
+        .card-radio .card-content {
+            border: 1px solid #e0e3e5;
+            background-color: white;
+            color: #434655;
+            transition: all 0.2s;
+        }
+        .card-radio input[type="radio"]:checked + .card-content {
+            border-color: #004ac6;
+            background-color: #f2f3ff;
+            color: #004ac6;
+        }
+
+        /* Toast Animation */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px) translateX(-50%); }
+            to { opacity: 1; transform: translateY(0) translateX(-50%); }
+        }
+        .toast-enter {
+            animation: slideUpFade 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-hidden">
+
+    <!-- Offline Banner -->
+    <div id="offlineBanner" class="hidden bg-danger-500 text-white text-center py-2 px-4 font-medium text-sm flex items-center justify-center gap-2 z-50">
+        <i data-lucide="wifi-off" class="w-4 h-4"></i>
+        Koneksi gateway studio terputus. Silakan panggil tim Ops.
+    </div>
+
+    <!-- Header Bar -->
+    <header class="bg-white border-b border-surface-border px-6 h-16 flex items-center justify-between shrink-0 z-40">
+        <!-- IoT Status -->
+        <div class="flex items-center gap-2 min-w-[120px]">
+            <a href="/" title="Back to Catalog" class="mr-2">
+                <i data-lucide="arrow-left" class="w-5 h-5 text-surface-textAlt hover:text-surface-text transition-colors"></i>
+            </a>
+            <div id="iotStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+            <span id="iotStatusText" class="text-xs font-semibold tracking-widest text-surface-textAlt uppercase">Connected</span>
+        </div>
+
+        <!-- Center: Title & Timer -->
+        <div class="flex flex-col items-center justify-center transition-all duration-300" id="centerHeaderContainer">
+            <h1 class="text-lg font-bold text-brand-500" id="headerTitle">Studio Controller</h1>
+            <div class="text-xs font-semibold tracking-widest uppercase mt-0.5 flex items-center gap-1.5 px-3 py-1 rounded-full border border-transparent transition-all duration-300" id="timerContainer">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-warning-600 hidden" id="timerWarningIcon"></i>
+                <span class="text-brand-500" id="timerTextLabel">SISA WAKTU:</span>
+                <span class="text-brand-500 font-bold" id="countdownTimer">00:45:00</span>
+            </div>
+        </div>
+
+        <!-- Right: Recording Badge -->
+        <div class="min-w-[120px] flex justify-end">
+            <div id="recBadge" class="hidden items-center gap-2 px-3 py-1 rounded-full border border-danger-200 bg-danger-50 text-danger-600">
+                <div class="w-2.5 h-2.5 rounded-full bg-danger-600 animate-pulse-fast"></div>
+                <span class="text-xs font-bold tracking-widest uppercase">REC</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col md:flex-row p-6 md:p-8 gap-6 max-w-[1440px] w-full mx-auto" id="mainContainer">
+        
+        <!-- Left Panel: Live Studio Session & Master Switch -->
+        <section class="w-full md:w-[400px] shrink-0 bg-brand-50 rounded-2xl border border-brand-100 p-8 flex flex-col shadow-sm">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold mb-3 tracking-tight">Live Studio Session</h2>
+                <p class="text-surface-textAlt text-sm">Merekam otomatis ke Cloud Video Vault Anda.</p>
+            </div>
+
+            <!-- Master Switch Button -->
+            <button id="masterSwitch" class="w-full py-12 rounded-[2rem] bg-brand-500 hover:bg-brand-600 text-white shadow-xl transition-all flex flex-col items-center justify-center gap-4 active:scale-[0.98]">
+                <div id="masterIconContainer" class="w-12 h-12 rounded-full border-4 border-white flex items-center justify-center">
+                    <div id="masterIconInner" class="w-4 h-4 bg-white rounded-full"></div>
+                </div>
+                <span id="masterSwitchText" class="text-lg font-bold tracking-wide uppercase">Start Recording</span>
+            </button>
+
+            <!-- Stream Toggle -->
+            <div class="mt-8 bg-white border border-surface-border rounded-xl p-4 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="radio" class="w-5 h-5 text-surface-textAlt"></i>
+                    <span class="text-sm font-medium text-surface-text">Stream to YouTube / Zoom</span>
+                </div>
+                <input type="checkbox" class="toggle-switch">
+            </div>
+        </section>
+
+        <!-- Right Panel: Presets -->
+        <section class="flex-1 flex flex-col gap-6">
+            
+            <!-- Kamera Presets -->
+            <div class="bg-white rounded-2xl border border-surface-border p-6 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="video" class="w-5 h-5 text-brand-500"></i>
+                    <h3 class="text-sm font-bold tracking-widest text-brand-500 uppercase">Kamera</h3>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <label class="card-radio cursor-pointer h-full">
+                        <input type="radio" name="camera_preset" value="whiteboard" checked>
+                        <div class="card-content rounded-xl p-4 flex flex-col items-center justify-center text-center gap-3 h-28 hover:bg-brand-50">
+                            <i data-lucide="presentation" class="w-6 h-6"></i>
+                            <span class="text-sm font-semibold">Whiteboard Focus</span>
+                        </div>
+                    </label>
+                    <label class="card-radio cursor-pointer h-full">
+                        <input type="radio" name="camera_preset" value="instructor">
+                        <div class="card-content rounded-xl p-4 flex flex-col items-center justify-center text-center gap-3 h-28 hover:bg-brand-50">
+                            <i data-lucide="scan-face" class="w-6 h-6"></i>
+                            <span class="text-sm font-semibold">Instructor Tracking</span>
+                        </div>
+                    </label>
+                    <label class="card-radio cursor-pointer h-full">
+                        <input type="radio" name="camera_preset" value="wide">
+                        <div class="card-content rounded-xl p-4 flex flex-col items-center justify-center text-center gap-3 h-28 hover:bg-brand-50">
+                            <i data-lucide="monitor-play" class="w-6 h-6"></i>
+                            <span class="text-sm font-semibold">Wide Classroom</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Audio Presets -->
+            <div class="bg-white rounded-2xl border border-surface-border p-6 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="mic" class="w-5 h-5 text-brand-500"></i>
+                    <h3 class="text-sm font-bold tracking-widest text-brand-500 uppercase">Audio</h3>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="border border-surface-border rounded-xl p-4 flex items-center justify-between hover:bg-brand-50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="mic-off" class="w-5 h-5 text-surface-textAlt"></i>
+                            <span class="text-sm font-medium">Mute Instructor Mic</span>
+                        </div>
+                        <input type="checkbox" class="toggle-switch">
+                    </div>
+                    <div class="border border-surface-border rounded-xl p-4 flex items-center justify-between hover:bg-brand-50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="volume-x" class="w-5 h-5 text-surface-textAlt"></i>
+                            <span class="text-sm font-medium">Mute Room Mic</span>
+                        </div>
+                        <input type="checkbox" class="toggle-switch">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Smart Board Presets -->
+            <div class="bg-white rounded-2xl border border-surface-border p-6 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="monitor" class="w-5 h-5 text-brand-500"></i>
+                    <h3 class="text-sm font-bold tracking-widest text-brand-500 uppercase">Input Smart Board</h3>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <label class="card-radio cursor-pointer">
+                        <input type="radio" name="input_preset" value="hdmi">
+                        <div class="card-content rounded-xl py-3 px-4 flex items-center justify-center gap-2 hover:bg-brand-50">
+                            <i data-lucide="cable" class="w-4 h-4"></i>
+                            <span class="text-sm font-semibold">HDMI-1</span>
+                        </div>
+                    </label>
+                    <label class="card-radio cursor-pointer">
+                        <input type="radio" name="input_preset" value="cast">
+                        <div class="card-content rounded-xl py-3 px-4 flex items-center justify-center gap-2 hover:bg-brand-50">
+                            <i data-lucide="cast" class="w-4 h-4"></i>
+                            <span class="text-sm font-semibold">Wireless Cast</span>
+                        </div>
+                    </label>
+                    <label class="card-radio cursor-pointer">
+                        <input type="radio" name="input_preset" value="whiteboard" checked>
+                        <div class="card-content rounded-xl py-3 px-4 flex items-center justify-center gap-2 hover:bg-brand-50">
+                            <i data-lucide="pen" class="w-4 h-4"></i>
+                            <span class="text-sm font-semibold">Built-in Whiteboard</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Bottom Bar -->
+    <footer class="bg-white border-t border-surface-border p-6 mt-auto z-40 shrink-0">
+        <div class="max-w-[1440px] w-full mx-auto flex items-center justify-between">
+            <button class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-surface-border bg-surface-bg hover:bg-surface-dim text-surface-text font-medium text-sm transition-colors shadow-sm active:scale-95">
+                <i data-lucide="headset" class="w-5 h-5 text-surface-textAlt"></i>
+                Minta Bantuan / Panggil Ops
+            </button>
+            <button class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-danger-200 bg-danger-50 hover:bg-danger-100 text-danger-600 font-medium text-sm transition-colors shadow-sm active:scale-95">
+                <i data-lucide="power" class="w-5 h-5"></i>
+                Selesaikan Sesi Lebih Awal
+            </button>
+        </div>
+    </footer>
+
+    <!-- Stop Recording Modal Overlay (Hidden by default) -->
+    <div id="stopModal" class="fixed inset-0 bg-surface-text/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform scale-95 transition-transform duration-300">
+            <h3 class="text-2xl font-bold mb-4">Selesaikan Perekaman?</h3>
+            <p class="text-surface-textAlt mb-8">Rekaman selesai dan sedang diunggah. Video akan tersedia di Video Vault Anda dalam &lt; 15 menit.</p>
+            
+            <div class="flex flex-col gap-3">
+                <button id="confirmStopBtn" class="w-full bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors active:scale-95">
+                    <i data-lucide="cloud-upload" class="w-5 h-5"></i>
+                    Konfirmasi & Unggah
+                </button>
+                <button id="cancelStopBtn" class="w-full bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-3 rounded-xl font-medium transition-colors active:scale-95">
+                    Lanjutkan Merekam
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification (Hidden by default) -->
+    <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-surface-text text-white px-6 py-3 rounded-lg shadow-xl text-sm font-medium z-50 hidden flex items-center gap-3">
+        <i data-lucide="circle-check" class="w-5 h-5 text-emerald-400"></i>
+        Video sedang diproses dan diunggah ke Cloud Storage Anda
+    </div>
+
+    <!-- Edge Case Simulation Control Panel -->
+    <div class="fixed bottom-28 right-6 bg-white rounded-xl border border-surface-border shadow-xl z-[60] w-80 transition-all duration-300 group overflow-hidden">
+        <div class="w-full flex items-center justify-between p-4 bg-white group-hover:bg-brand-50 cursor-pointer transition-colors border-b border-transparent group-hover:border-surface-border">
+            <div class="flex items-center gap-2">
+                <i data-lucide="settings-2" class="w-4 h-4 text-brand-500"></i>
+                <h4 class="font-bold text-sm uppercase tracking-wider text-brand-500">Simulation</h4>
+            </div>
+            <i data-lucide="chevron-up" class="w-5 h-5 text-surface-textAlt group-hover:text-brand-500 transition-transform duration-300 group-hover:rotate-180"></i>
+        </div>
+        
+        <div class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-in-out">
+            <div class="overflow-hidden">
+                <div class="px-5 pb-5 pt-4 flex flex-col gap-4 bg-white">
+                    <label class="flex items-start gap-3 cursor-pointer hover:opacity-80">
+                        <input type="checkbox" id="simTimer" class="custom-checkbox mt-0.5 shrink-0" style="appearance: none; width: 20px; height: 20px; border: 1px solid #c3c6d7; border-radius: 4px; background-color: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <div>
+                            <span class="text-sm font-semibold text-surface-text block">Timer Warning (&lt; 10 Menit)</span>
+                            <span class="text-xs text-surface-textAlt block mt-0.5">Ubah warna timer menjadi peringatan</span>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-start gap-3 cursor-pointer hover:opacity-80">
+                        <input type="checkbox" id="simOffline" class="custom-checkbox mt-0.5 shrink-0" style="appearance: none; width: 20px; height: 20px; border: 1px solid #c3c6d7; border-radius: 4px; background-color: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <div>
+                            <span class="text-sm font-semibold text-surface-text block">Simulate IOT_GATEWAY_OFFLINE</span>
+                            <span class="text-xs text-surface-textAlt block mt-0.5">Putus koneksi dan disable kontrol</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Hack for custom checkbox in the simulation panel to match tailwind arbitrary style */
+        input.custom-checkbox:checked {
+            background-color: #2563eb !important;
+            border-color: #2563eb !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+            background-size: 12px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+
+    <!-- App Logic Scripts -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Elements
+        const masterSwitch = document.getElementById('masterSwitch');
+        const masterSwitchText = document.getElementById('masterSwitchText');
+        const masterIconInner = document.getElementById('masterIconInner');
+        const masterIconContainer = document.getElementById('masterIconContainer');
+        const recBadge = document.getElementById('recBadge');
+        const stopModal = document.getElementById('stopModal');
+        const confirmStopBtn = document.getElementById('confirmStopBtn');
+        const cancelStopBtn = document.getElementById('cancelStopBtn');
+        const toast = document.getElementById('toast');
+        const mainContainer = document.getElementById('mainContainer');
+
+        const simTimer = document.getElementById('simTimer');
+        const countdownTimer = document.getElementById('countdownTimer');
+        const timerTextLabel = document.getElementById('timerTextLabel');
+
+        const simOffline = document.getElementById('simOffline');
+        const iotStatusDot = document.getElementById('iotStatusDot');
+        const iotStatusText = document.getElementById('iotStatusText');
+        const offlineBanner = document.getElementById('offlineBanner');
+
+        // State
+        let isRecording = false;
+
+        // --- Logic: Master Switch & Recording State ---
+        masterSwitch.addEventListener('click', () => {
+            if (simOffline.checked) return; // Prevent action if offline
+
+            if (!isRecording) {
+                // START RECORDING
+                isRecording = true;
+                
+                // Button to Stop (Red)
+                masterSwitch.classList.remove('bg-brand-500', 'hover:bg-brand-600');
+                masterSwitch.classList.add('bg-danger-600', 'hover:bg-danger-500');
+                masterSwitchText.innerText = 'Stop Recording';
+                
+                // Icon shape to Square
+                masterIconInner.style.borderRadius = '4px';
+                masterIconInner.style.width = '16px';
+                masterIconInner.style.height = '16px';
+                
+                // Show Badge
+                recBadge.classList.remove('hidden');
+                recBadge.classList.add('flex');
+            } else {
+                // Request STOP RECORDING -> Show Modal
+                openModal();
+            }
+        });
+
+        // --- Logic: Modal interactions ---
+        function openModal() {
+            stopModal.classList.remove('hidden');
+            stopModal.classList.add('flex');
+            // Small delay for transition
+            setTimeout(() => {
+                stopModal.classList.remove('opacity-0');
+                stopModal.firstElementChild.classList.remove('scale-95');
+                stopModal.firstElementChild.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            stopModal.classList.add('opacity-0');
+            stopModal.firstElementChild.classList.remove('scale-100');
+            stopModal.firstElementChild.classList.add('scale-95');
+            setTimeout(() => {
+                stopModal.classList.remove('flex');
+                stopModal.classList.add('hidden');
+            }, 300);
+        }
+
+        cancelStopBtn.addEventListener('click', closeModal);
+
+        confirmStopBtn.addEventListener('click', () => {
+            closeModal();
+            
+            // Revert state to Start
+            isRecording = false;
+            masterSwitch.classList.remove('bg-danger-600', 'hover:bg-danger-500');
+            masterSwitch.classList.add('bg-brand-500', 'hover:bg-brand-600');
+            masterSwitchText.innerText = 'Start Recording';
+            
+            // Icon shape to Circle
+            masterIconInner.style.borderRadius = '50%';
+            masterIconInner.style.width = '16px';
+            masterIconInner.style.height = '16px';
+            
+            // Hide Badge
+            recBadge.classList.add('hidden');
+            recBadge.classList.remove('flex');
+
+            // Show Toast
+            toast.classList.remove('hidden');
+            toast.classList.add('toast-enter');
+            setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('hidden');
+            }, 4000);
+        });
+
+        // --- Logic: Edge Cases (Simulation Panel) ---
+
+        // 1. Timer Warning
+        const timerContainer = document.getElementById('timerContainer');
+        const timerWarningIcon = document.getElementById('timerWarningIcon');
+        
+        simTimer.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                countdownTimer.innerText = '00:08:00';
+                countdownTimer.classList.remove('text-brand-500');
+                countdownTimer.classList.add('text-warning-600');
+                timerTextLabel.classList.remove('text-brand-500');
+                timerTextLabel.classList.add('text-warning-600');
+                timerContainer.classList.remove('border-transparent');
+                timerContainer.classList.add('bg-warning-50', 'border-warning-200');
+                timerWarningIcon.classList.remove('hidden');
+            } else {
+                countdownTimer.innerText = '00:45:00';
+                countdownTimer.classList.add('text-brand-500');
+                countdownTimer.classList.remove('text-warning-600');
+                timerTextLabel.classList.add('text-brand-500');
+                timerTextLabel.classList.remove('text-warning-600');
+                timerContainer.classList.add('border-transparent');
+                timerContainer.classList.remove('bg-warning-50', 'border-warning-200');
+                timerWarningIcon.classList.add('hidden');
+            }
+        });
+
+        // 2. Simulate IOT_GATEWAY_OFFLINE
+        simOffline.addEventListener('change', (e) => {
+            const allInputs = mainContainer.querySelectorAll('input, button');
+            
+            if (e.target.checked) {
+                // Header status
+                iotStatusDot.classList.replace('bg-emerald-500', 'bg-danger-600');
+                iotStatusText.innerText = 'Offline';
+                iotStatusText.classList.replace('text-surface-textAlt', 'text-danger-600');
+                
+                // Banner
+                offlineBanner.classList.remove('hidden');
+
+                // Disable Controls
+                mainContainer.style.opacity = '0.5';
+                mainContainer.style.pointerEvents = 'none';
+                
+            } else {
+                // Header status
+                iotStatusDot.classList.replace('bg-danger-600', 'bg-emerald-500');
+                iotStatusText.innerText = 'Connected';
+                iotStatusText.classList.replace('text-danger-600', 'text-surface-textAlt');
+                
+                // Banner
+                offlineBanner.classList.add('hidden');
+
+                // Enable Controls
+                mainContainer.style.opacity = '1';
+                mainContainer.style.pointerEvents = 'auto';
+            }
+        });
+
+    </script>
+</body>
+</html>
