@@ -1,15 +1,29 @@
 # Dokumen Desain Skema Database: Platform Sewa Smart Classroom
 
-**Versi:** 1.0  
+**Versi:** 1.1  
 **Tanggal:** 9 Agustus 2026  
 **Penulis:** Database Architect / Lead Engineer  
 **Status:** Draf Desain Skema Produksi  
 **Dokumen Terkait:**
-* `docs/01_ProductDiscovery.md` (Strategi Bisnis, Pricing & Kebijakan Refund) -> [01_ProductDiscovery.md](file:///usr/local/var/www/domains/applications/maxy.academy/vc-classroom/docs/01_ProductDiscovery.md)
-* `docs/02_ProductRequirementDocument.md` (Scope & Fitur Bisnis) -> [02_ProductRequirementDocument.md](file:///usr/local/var/www/domains/applications/maxy.academy/vc-classroom/docs/02_ProductRequirementDocument.md)
-* `docs/03_FunctionalRequirementDocument.md` (Workflow System, API, Validation & Business Logic) -> [03_FunctionalRequirementDocument.md](file:///usr/local/var/www/domains/applications/maxy.academy/vc-classroom/docs/03_FunctionalRequirementDocument.md)
-* `docs/04_InformationArchitecture.md` (Hierarchy Screens, Content & Navigasi) -> [04_InformationArchitecture.md](file:///usr/local/var/www/domains/applications/maxy.academy/vc-classroom/docs/04_InformationArchitecture.md)
-* `README/UseCaseDiagram.md` (Visualisasi Aksi Aktor) -> [UseCaseDiagram.md](file:///usr/local/var/www/domains/applications/maxy.academy/vc-classroom/README/UseCaseDiagram.md)
+* `docs/01_ProductDiscovery.md` (Strategi Bisnis, Pricing & Kebijakan Refund) -> [01_ProductDiscovery.md](docs/01_ProductDiscovery.md)
+* `docs/02_ProductRequirementDocument.md` (Scope & Fitur Bisnis) -> [02_ProductRequirementDocument.md](docs/02_ProductRequirementDocument.md)
+* `docs/03_FunctionalRequirementDocument.md` (Workflow System, API, Validation & Business Logic) -> [03_FunctionalRequirementDocument.md](docs/03_FunctionalRequirementDocument.md)
+* `docs/04_InformationArchitecture.md` (Hierarchy Screens, Content & Navigasi) -> [04_InformationArchitecture.md](docs/04_InformationArchitecture.md)
+* `docs/X_ProgressSummary.md` (Tracking Progres & Punch List Lintas Dokumen) -> [X_ProgressSummary.md](docs/X_ProgressSummary.md)
+* `README/2-UseCaseDiagram.md` (Visualisasi Aksi Aktor) -> [2-UseCaseDiagram.md](2-UseCaseDiagram.md)
+* `README/2-UITesting.md` (Panduan Uji Coba Prototipe Lokal) -> [2-UITesting.md](2-UITesting.md)
+
+### Riwayat Revisi
+
+| Versi | Bagian | Sebelum | Sesudah |
+| :--- | :--- | :--- | :--- |
+| 1.0 | Dokumen (keseluruhan) | — | Draf awal skema database. |
+| 1.1 | Header | Tautan "Dokumen Terkait" ke `README/UseCaseDiagram.md` rusak (file sebenarnya `README/2-UseCaseDiagram.md`); `docs/X_ProgressSummary.md` & `README/2-UITesting.md` tidak dirujuk. | Tautan diperbaiki; 2 dokumen terkait ditambahkan. |
+| 1.1 | Kamus Data §3.1, §3.16 | Deskripsi `users.role` & `audit_logs.actor_role` memakai istilah informal "Admin/Super" yang tidak cocok dengan `role_enum` resmi (`STUDIO_ADMIN`/`SUPER_ADMIN`) di §4 — inkonsistensi internal dokumen. | Deskripsi disamakan persis dengan `role_enum`. |
+| 1.1 | Kamus Data §3.2, Workflow §5.2 | `monthly_hours_quota` Enterprise memakai dua sentinel berbeda sekaligus ("-1 / 9999") tanpa definisi tunggal; pseudocode §5.2 tidak menangani kasus "Unlimited" sehingga secara logika akan **salah memicu `QUOTA_EXCEEDED` untuk Enterprise** (bug). `storage_gb` mewajibkan angka pasti untuk Basic/Enterprise padahal PD §8.1.B tidak menyebutkannya. | Sentinel dikunci ke `-1` saja; pseudocode §5.2 ditambahkan pengecekan eksplisit sebelum pengurangan kuota; `storage_gb` dibuat *nullable* dengan catatan ⚠️ Asumsi. |
+| 1.1 | ERD, Kamus Data §3.17-3.19, Workflow §5.5-§5.7, Indeks §6.5 | Tidak ada tabel untuk (a) refund pembatalan booking pay-per-use (FEAT-BKG-03, punya kontrak API eksplisit di FRD §5.4 tapi tidak ada tabelnya), (b) "saldo wallet" yang disebut eksplisit di FRD §7.2 tapi tidak pernah direpresentasikan, (c) log percobaan akses gagal yang dibutuhkan alert `TOKEN_EXPIRED_OR_INVALID` (FRD §8) & Live Alert Feed (IA H-07). | Ditambahkan tabel `booking_cancellations`, `wallet_transactions`, `door_access_attempts` beserta relasi ERD, alur workflow, dan indeks pendukung. |
+| 1.1 | Workflow §5.6 | Tabel `subscription_refunds` sudah ada di v1.0 tapi tidak punya narasi alur (gap konsistensi internal dokumen). | Ditambahkan narasi alur mengacu PD §8.2, dengan ⚠️ Asumsi eksplisit untuk bagian yang belum final di dokumen sumber. |
+| 1.1 | Keamanan Data §8 | Tidak ada ketentuan soal `wallet_balance` saat akun dihapus (soft delete). | Ditambahkan catatan ⚠️ Asumsi + rekomendasi teknis minimal (blokir hapus akun jika saldo > 0), menunggu sign-off produk/finance. |
 
 ---
 
@@ -37,16 +51,29 @@ erDiagram
         varchar institution "NULL"
         varchar role "NOT NULL"
         boolean two_factor_enabled "NOT NULL"
+        decimal wallet_balance "NOT NULL"
         timestamp created_at "NOT NULL"
         timestamp updated_at "NOT NULL"
         timestamp deleted_at "NULL"
+    }
+
+    wallet_transactions {
+        uuid id PK
+        uuid user_id FK "NOT NULL"
+        varchar type "NOT NULL"
+        decimal amount "NOT NULL"
+        decimal balance_after "NOT NULL"
+        varchar reference_type "NOT NULL"
+        varchar reference_id "NULL"
+        text description "NULL"
+        timestamp created_at "NOT NULL"
     }
 
     subscription_plans {
         varchar id PK
         varchar name "NOT NULL"
         integer monthly_hours_quota "NOT NULL"
-        integer storage_gb "NOT NULL"
+        integer storage_gb "NULL"
         boolean includes_ai_transcription "NOT NULL"
         decimal monthly_price "NOT NULL"
         timestamp created_at "NOT NULL"
@@ -146,6 +173,28 @@ erDiagram
         timestamp created_at "NOT NULL"
     }
 
+    door_access_attempts {
+        uuid id PK
+        varchar room_id FK "NOT NULL"
+        varchar booking_id FK "NULL"
+        varchar input_type "NOT NULL"
+        varchar result "NOT NULL"
+        timestamp attempted_at "NOT NULL"
+    }
+
+    booking_cancellations {
+        uuid id PK
+        varchar booking_id FK "UQ, NOT NULL"
+        uuid cancelled_by FK "NOT NULL"
+        varchar cancelled_by_role "NOT NULL"
+        integer refund_percentage "NOT NULL"
+        decimal refund_amount "NOT NULL"
+        varchar refund_destination "NOT NULL"
+        text reason "NULL"
+        timestamp cancelled_at "NOT NULL"
+        timestamp created_at "NOT NULL"
+    }
+
     recordings {
         uuid id PK
         varchar booking_id FK "NOT NULL"
@@ -231,6 +280,8 @@ erDiagram
     users ||--o{ manual_unlock_logs : "authorizes"
     users ||--o{ late_checkout_logs : "registers"
     users ||--o{ subscription_refunds : "processes"
+    users ||--o{ wallet_transactions : "owns"
+    users ||--o{ booking_cancellations : "requests_or_overrides"
 
     subscription_plans ||--o{ user_subscriptions : "defines"
     user_subscriptions ||--o{ subscription_refunds : "requests"
@@ -241,11 +292,14 @@ erDiagram
     rooms ||--o{ room_maintenance_logs : "logged_for"
     rooms ||--o{ iot_device_status : "monitors"
     rooms ||--o{ manual_unlock_logs : "manually_unlocked_for"
+    rooms ||--o{ door_access_attempts : "logs_attempt_at"
 
     bookings ||--o{ payments : "billed_by"
     bookings ||--o{ room_access_tokens : "accessed_by"
     bookings ||--o{ recordings : "creates_recordings"
     bookings ||--o{ late_checkout_logs : "penalized_by"
+    bookings ||--o{ door_access_attempts : "attempted_against"
+    bookings ||--o| booking_cancellations : "cancelled_via"
 
     recordings ||--o{ ai_transcriptions : "generates"
 ```
@@ -267,8 +321,9 @@ Menyimpan kredensial autentikasi pengguna dan profil dasar. Field didasarkan pad
 | `name` | `VARCHAR(255)` | No | — | Min. 2 karakter | Nama lengkap pengguna (form input `inputNama`). |
 | `phone` | `VARCHAR(20)` | No | — | format E.164 (`^(\+62\|62\|0)8[1-9][0-9]{7,10}$`)| Nomor HP valid Indonesia (input `inputPhone`). |
 | `institution` | `VARCHAR(255)` | Yes | `NULL` | — | Institusi/organisasi (input `inputInstitusi`). |
-| `role` | `VARCHAR(50)` | No | `'MEMBER'` | Check constraint: `role_enum` | Role RBAC (Member, Premium Member, Admin, Super). |
+| `role` | `VARCHAR(50)` | No | `'MEMBER'` | Check constraint: `role_enum` | Role RBAC — nilai persis `role_enum` §4: `MEMBER`, `PREMIUM_MEMBER`, `STUDIO_ADMIN`, `SUPER_ADMIN` (Guest tidak disimpan karena unauthenticated). |
 | `two_factor_enabled` | `BOOLEAN` | No | `FALSE` | — | Toggle autentikasi dua faktor (input `toggle2FA`). |
+| `wallet_balance` | `NUMERIC(12,2)` | No | `0.00` | `>= 0.00` | Saldo kredit internal hasil refund pembatalan booking pay-per-use (FRD §7.2: "dikreditkan ke saldo wallet/kuota") — lihat §3.18 `wallet_transactions` untuk ledger perubahannya. |
 | `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Tanggal pendaftaran. |
 | `updated_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Tanggal pembaruan profil terakhir. |
 | `deleted_at` | `TIMESTAMPTZ` | Yes | `NULL` | — | Soft deletion flag untuk kepatuhan GDPR/User Delete. |
@@ -280,8 +335,8 @@ Menyimpan paket katalog subscription yang disetujui tim bisnis (Finance - 8 Agus
 | :--- | :--- | :---: | :---: | :--- | :--- |
 | `id` | `VARCHAR(50)` | No | — | `PRIMARY KEY` (Enum: `'BASIC'`, `'PRO'`, `'ENTERPRISE'`) | ID string paket langganan. |
 | `name` | `VARCHAR(100)` | No | — | — | Nama komersial paket. |
-| `monthly_hours_quota` | `INTEGER` | No | — | `>= -1` (Enterprise = -1 / 9999) | Kuota sewa ruangan per bulan (Basic: 10, Pro: 30). |
-| `storage_gb` | `INTEGER` | No | — | `>= 0` (Pro: 500 GB) | Kuota penyimpanan video cloud (Vault). |
+| `monthly_hours_quota` | `INTEGER` | No | — | `>= -1`; **`-1` = sentinel "Unlimited" (khusus Enterprise)** | Kuota sewa ruangan per bulan sesuai PD §8.1.B: Basic = 10, Pro = 30. **Enterprise = `-1`** — PD hanya menyebut "Unlimited (prakiraan kuota)" tanpa angka pasti, sehingga `-1` adalah representasi teknis internal, bukan angka bisnis final. Lihat §5.2 untuk logika penanganan nilai `-1` ini di alur pemotongan kuota (wajib di-skip, bukan dikurangi). |
+| `storage_gb` | `INTEGER` | Yes | `NULL` | `>= 0` jika diisi | Kuota penyimpanan video cloud (Vault). **Hanya Pro yang punya angka pasti di PD §8.1.B (500 GB).** ⚠️ **Asumsi (belum terdokumentasi):** PD tidak menyebut angka GB untuk Basic ("Standard Storage", tanpa kuantitas) maupun Enterprise (tidak disebutkan sama sekali) — kolom dibuat *nullable* agar tidak memaksa angka karangan untuk kedua tier ini; nilai `NULL` berarti "belum ditentukan bisnis", bukan "tanpa batas". Perlu konfirmasi tim bisnis sebelum go-live. |
 | `includes_ai_transcription` | `BOOLEAN` | No | `FALSE` | — | Status transkripsi otomatis (Basic: No, Pro/Ent: Yes). |
 | `monthly_price` | `NUMERIC(12,2)`| No | — | `>= 0` (Basic: 1.2M, Pro: 4.9M, Ent: 11.9M) | Harga tagihan bulanan dalam IDR. |
 | `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Tanggal pembuatan konfigurasi plan. |
@@ -492,13 +547,59 @@ Menampung log keamanan terpusat untuk aktivitas administratif penting di Portal 
 | :--- | :--- | :---: | :---: | :--- | :--- |
 | `id` | `UUID` | No | `gen_random_uuid()`| `PRIMARY KEY` | ID entri audit. |
 | `actor_id` | `UUID` | No | — | `FOREIGN KEY` -> `users.id` ON DELETE RESTRICT | Operator penanggung jawab. |
-| `actor_role` | `VARCHAR(50)` | No | — | — | Peran/role JWT aktor saat melakukan aksi (Member/Admin/Super). |
+| `actor_role` | `VARCHAR(50)` | No | — | — | Peran/role JWT aktor saat melakukan aksi — nilai mengacu `role_enum` §4 (Member/Premium Member/Studio Admin/Super Admin). |
 | `action` | `VARCHAR(100)` | No | — | — | Tipe aksi (e.g. `'MANUAL_UNLOCK'`, `'CHANGE_ROLE'`, `'REFUND_BOOKING'`). |
 | `target_table` | `VARCHAR(100)` | No | — | — | Tabel database fisik yang diubah nilainya. |
 | `target_id` | `VARCHAR(100)` | No | — | — | Primary key record yang terdampak. |
 | `changes_payload` | `JSONB` | Yes | `NULL` | — | Detail perubahan field (sebelum & sesudah) dalam struktur JSON. |
 | `description` | `TEXT` | No | — | — | Narasi penjelas aksi (e.g. "Mengubah role user X dari Member ke Admin"). |
 | `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu pencatatan log (sumber waktu server). |
+
+### 3.17 Tabel `booking_cancellations` *(baru — hasil analisa)*
+
+> **Temuan:** Draf v1.0 memiliki `subscription_refunds` untuk pembatalan **langganan**, tetapi tidak memiliki tabel setara untuk pembatalan **booking pay-per-use self-service** (FEAT-BKG-03) — padahal ini adalah alur MVP inti yang sudah punya kontrak API eksplisit di `docs/03_FunctionalRequirementDocument.md` §5.4 (`POST /api/v1/bookings/{id}/cancel`, response memuat `refund_percentage` & `refund_amount`) dan screen `3.7 Cancellation & Refund Confirmation` / `5.6 Booking & Refund Management` di IA. Tabel ini menutup gap tersebut, memakai field yang **sama persis namanya** dengan payload API §5.4 agar tidak ada terjemahan ganda di kode.
+
+| Nama Kolom | Tipe Data | Nullable | Default | Batasan & Aturan Bisnis / FK | Deskripsi |
+| :--- | :--- | :---: | :---: | :--- | :--- |
+| `id` | `UUID` | No | `gen_random_uuid()`| `PRIMARY KEY` | ID catatan pembatalan. |
+| `booking_id` | `VARCHAR(100)` | No | — | `FOREIGN KEY` -> `bookings.id` ON DELETE CASCADE, `UNIQUE` (1 booking maksimal 1 kali dibatalkan) | Booking yang dibatalkan. |
+| `cancelled_by` | `UUID` | No | — | `FOREIGN KEY` -> `users.id` | Akun yang mengeksekusi pembatalan — pemilik booking (self-service, 3.7) atau admin (override, 5.6). |
+| `cancelled_by_role` | `VARCHAR(50)` | No | — | Nilai `role_enum` §4 | Peran aktor saat membatalkan — membedakan pembatalan mandiri (`MEMBER`/`PREMIUM_MEMBER`) vs override (`STUDIO_ADMIN`/`SUPER_ADMIN`), sesuai pemisahan RBAC "Cancel Own Booking" vs "override" di `03_FunctionalRequirementDocument.md` §4. |
+| `refund_percentage` | `INTEGER` | No | — | Check: `100`, `50`, `0` | Persentase refund sesuai Cancellation Policy `03_FunctionalRequirementDocument.md` §7.2 (`>24 jam`=100, `4-24 jam`=50, `<4 jam`=0). Nama field sama persis dengan payload API §5.4. |
+| `refund_amount` | `NUMERIC(12,2)`| No | — | `= bookings.total_amount * refund_percentage / 100` | Nominal refund dalam IDR. Nama field sama persis dengan payload API §5.4. |
+| `refund_destination` | `VARCHAR(50)` | No | — | Check: `'WALLET'`, `'SUBSCRIPTION_QUOTA'` | Tujuan pengembalian sesuai FRD §7.2 ("dikreditkan ke saldo wallet/kuota") — `WALLET` jika booking dibayar VA/E-Wallet (lihat §3.18 `wallet_transactions`), `SUBSCRIPTION_QUOTA` jika `bookings.payment_type = 'SUBSCRIPTION_QUOTA'` (mengembalikan jam ke `user_subscriptions.quota_hours_used`). |
+| `reason` | `TEXT` | Yes | `NULL` | Max 500 karakter (FRD §6) | Alasan pembatalan — tidak memengaruhi persentase refund (FRD §6, baris `reason`). |
+| `cancelled_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu pembatalan dieksekusi — dipakai untuk menghitung selisih jam ke sesi (basis `refund_percentage`). |
+| `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu record dibuat. |
+
+### 3.18 Tabel `wallet_transactions` *(baru — hasil analisa)*
+
+> **Temuan:** `03_FunctionalRequirementDocument.md` §7.2 menyebut refund pembatalan booking pay-per-use "dikreditkan ke **saldo wallet**/kuota" — istilah "wallet" ini tidak direpresentasikan sama sekali di draf skema v1.0 (hanya kuota subscription yang ada). Tabel ini adalah *ledger* append-only (pola sama dengan `audit_logs` — tidak pernah di-`UPDATE`/`DELETE`, hanya `INSERT`) agar saldo `users.wallet_balance` selalu bisa direkonsiliasi dari riwayat transaksinya.
+
+| Nama Kolom | Tipe Data | Nullable | Default | Batasan & Aturan Bisnis / FK | Deskripsi |
+| :--- | :--- | :---: | :---: | :--- | :--- |
+| `id` | `UUID` | No | `gen_random_uuid()`| `PRIMARY KEY` | ID entri ledger. |
+| `user_id` | `UUID` | No | — | `FOREIGN KEY` -> `users.id` | Pemilik saldo wallet. |
+| `type` | `VARCHAR(20)` | No | — | Check: `'CREDIT'`, `'DEBIT'` | Arah transaksi. MVP saat ini hanya menghasilkan `CREDIT` (dari refund booking) — `DEBIT` disiapkan untuk saat wallet dapat dipakai membayar booking baru (belum ada di FRD, ditandai sebagai kemungkinan pasca-MVP, bukan fitur yang sudah dikonfirmasi). |
+| `amount` | `NUMERIC(12,2)`| No | — | `> 0` | Nominal transaksi (selalu positif; arah ditentukan `type`). |
+| `balance_after` | `NUMERIC(12,2)`| No | — | `>= 0.00` | Saldo `users.wallet_balance` setelah transaksi ini — snapshot untuk audit tanpa perlu replay seluruh ledger. |
+| `reference_type` | `VARCHAR(50)` | No | — | Check: `'BOOKING_CANCELLATION'` (MVP) | Sumber pemicu transaksi. |
+| `reference_id` | `VARCHAR(100)` | Yes | `NULL` | Merujuk `booking_cancellations.id` | ID record sumber transaksi. |
+| `description` | `TEXT` | Yes | `NULL` | — | Narasi ringkas (e.g. "Refund pembatalan booking bkg-20260820-0089"). |
+| `created_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu transaksi dicatat. |
+
+### 3.19 Tabel `door_access_attempts` *(baru — hasil analisa)*
+
+> **Temuan:** Matriks error `03_FunctionalRequirementDocument.md` §8 mensyaratkan deteksi *"jika terjadi berulang (>3x) pada `room_id` yang sama dalam 10 menit, kirim notifikasi ke Studio Admin"* untuk kode `TOKEN_EXPIRED_OR_INVALID`, dan `04_InformationArchitecture.md` §4.7 (H-07 Ops Dashboard) mensyaratkan **Live Alert Feed** yang menampilkan insiden ini — namun draf skema v1.0 hanya mencatat token yang **valid** (`room_access_tokens`), tidak ada jejak percobaan **gagal**. Tabel ini menutup gap tersebut.
+
+| Nama Kolom | Tipe Data | Nullable | Default | Batasan & Aturan Bisnis / FK | Deskripsi |
+| :--- | :--- | :---: | :---: | :--- | :--- |
+| `id` | `UUID` | No | `gen_random_uuid()`| `PRIMARY KEY` | ID entri percobaan akses. |
+| `room_id` | `VARCHAR(100)` | No | — | `FOREIGN KEY` -> `rooms.id` ON DELETE CASCADE | Ruangan tempat percobaan terjadi. |
+| `booking_id` | `VARCHAR(100)` | Yes | `NULL` | `FOREIGN KEY` -> `bookings.id` ON DELETE SET NULL | Terisi jika token valid tapi di luar jendela waktu; `NULL` jika PIN/QR tidak dikenali sama sekali. |
+| `input_type` | `VARCHAR(10)` | No | — | Check: `'PIN'`, `'QR'` | Metode input yang dicoba di Smart Lock. |
+| `result` | `VARCHAR(30)` | No | — | Check: `'SUCCESS'`, `'TOKEN_EXPIRED_OR_INVALID'` | Hasil validasi — nilai gagal memakai kode error persis dari FRD §8 agar mudah di-*grep* lintas log & API response. |
+| `attempted_at` | `TIMESTAMPTZ` | No | `NOW()` | — | Waktu percobaan — dasar perhitungan jendela "10 menit" pada Business Rule terkait `TOKEN_EXPIRED_OR_INVALID`. |
 
 ---
 
@@ -517,6 +618,10 @@ Untuk membatasi kebebasan pengisian nilai kolom bertipe status, sistem menggunak
 9. **`payment_status_enum`**: `'PENDING'`, `'PAID'`, `'FAILED'`, `'REFUNDED'`
 10. **`recording_status_enum`**: `'RECORDING'`, `'PAUSED'`, `'STOPPED'`, `'PROCESSING'`, `'READY'`, `'FAILED'`
 11. **`iot_device_type_enum`**: `'SMART_LOCK'`, `'AI_CAMERA'`, `'AUDIO_ARRAY'`
+12. **`wallet_transaction_type_enum`** *(baru)*: `'CREDIT'`, `'DEBIT'`
+13. **`refund_destination_enum`** *(baru)*: `'WALLET'`, `'SUBSCRIPTION_QUOTA'`
+14. **`door_access_input_type_enum`** *(baru)*: `'PIN'`, `'QR'`
+15. **`door_access_result_enum`** *(baru)*: `'SUCCESS'`, `'TOKEN_EXPIRED_OR_INVALID'` — nilai gagal sengaja disamakan persis dengan kode error `03_FunctionalRequirementDocument.md` §8.
 
 ---
 
@@ -549,10 +654,17 @@ Jika metode pembayaran terpilih adalah **`SUBSCRIPTION_QUOTA`** (Premium Member 
    WHERE user_id = :user_id AND status = 'ACTIVE' 
    FOR UPDATE;
    ```
-3. Melakukan pengecekan sisa kuota:
-   `sisa_kuota = quota_hours_total - quota_hours_used`
-   Jika sewa membutuhkan `2.0` jam, dan `sisa_kuota < 2.0`, transaksi dibatalkan (`ROLLBACK`) dan memicu error `QUOTA_EXCEEDED` agar dialihkan ke pay-per-use.
-4. Jika kuota mencukupi:
+3. Melakukan pengecekan sisa kuota — **wajib periksa sentinel "Unlimited" lebih dulu** (koreksi hasil analisa: pseudocode draf v1.0 langsung mengurangkan tanpa case ini, yang akan membuat `sisa_kuota` selalu negatif untuk Enterprise dan salah memicu `QUOTA_EXCEEDED`):
+   ```sql
+   IF quota_hours_total = -1 THEN
+       -- Enterprise "Unlimited" (§3.2) — lewati pengecekan sisa kuota sepenuhnya
+       sisa_kuota := 999999; -- nilai simbolis, tidak pernah dipakai untuk membatasi
+   ELSE
+       sisa_kuota := quota_hours_total - quota_hours_used;
+   END IF;
+   ```
+   Jika sewa membutuhkan `2.0` jam, dan `sisa_kuota < 2.0`, transaksi dibatalkan (`ROLLBACK`) dan memicu error `QUOTA_EXCEEDED` agar dialihkan ke pay-per-use. Untuk Enterprise (`quota_hours_total = -1`), langkah ini **tidak pernah** menghasilkan `QUOTA_EXCEEDED`.
+4. Jika kuota mencukupi (atau plan = Enterprise/Unlimited):
    * Menambahkan kuota terpakai: `quota_hours_used = quota_hours_used + 2.0`.
    * Membuat entri di tabel `bookings` dengan status `'CONFIRMED'` secara instan (karena tidak perlu menunggu status lunas Payment Gateway).
    * Membuat entri `'PAID'` di tabel `payments` dengan `payment_method` = `'SUBSCRIPTION_QUOTA'` dan `paid_amount` = `0`.
@@ -589,6 +701,49 @@ Jika metode pembayaran terpilih adalah **`SUBSCRIPTION_QUOTA`** (Premium Member 
    * Membuat entri baru di tabel `ai_transcriptions` dengan status `'PENDING'`.
    * Begitu selesai dikonversi oleh mesin AI: memperbarui status `ai_transcriptions.status` = `'READY'` serta menulis tautan bucket berkas teks hasil transkrip ke `transcript_srt_url` dan `transcript_json_url`.
    * Jika konversi gagal pasca-retry 3x: memperbarui status `ai_transcriptions.status` = `'FAILED'` (memicu notifikasi error `TRANSCRIPTION_FAILED` di Admin panel).
+
+### 5.5 Alur Pembatalan & Refund Booking Pay-Per-Use *(baru — hasil analisa, sebelumnya tidak terdokumentasi meski tabelnya sekarang ada di §3.17-3.18)*
+
+Alur ini mengimplementasikan `POST /api/v1/bookings/{id}/cancel` (`03_FunctionalRequirementDocument.md` §5.4) yang dipanggil dari screen self-service `3.7 Cancellation & Refund Confirmation` maupun override admin `5.6 Booking & Refund Management`.
+
+1. Sistem memvalidasi **Cancellation Guard** (Business Rule 5, FRD §7): jika `bookings.status` sudah `'COMPLETED'`/`'CANCELLED'` atau `current_time >= start_time`, tolak dengan `CANCELLATION_NOT_ALLOWED` (409).
+2. Hitung `refund_percentage` berdasarkan selisih waktu ke `start_time` (FRD §7.2): `100` jika `> 24 jam`, `50` jika `4-24 jam`, `0` jika `< 4 jam`.
+3. Dalam satu **Database ACID Transaction Block**:
+   * Insert baris baru ke `booking_cancellations` (`refund_percentage`, `refund_amount = bookings.total_amount * refund_percentage / 100`, `cancelled_by`, `cancelled_by_role`, `reason`).
+   * Update `bookings.status` = `'CANCELLED'`.
+   * **Tentukan `refund_destination` dari `bookings.payment_type`:**
+     * Jika `payment_type = 'PAY_PER_USE'` dan `refund_amount > 0`: `refund_destination = 'WALLET'` → `UPDATE users SET wallet_balance = wallet_balance + refund_amount WHERE id = :user_id` **(gunakan `SELECT ... FOR UPDATE` pada baris `users` untuk mencegah race condition, pola sama seperti lock kuota di §5.2)**, lalu insert baris `wallet_transactions` (`type = 'CREDIT'`, `reference_type = 'BOOKING_CANCELLATION'`, `reference_id = booking_cancellations.id`, `balance_after` = saldo terbaru).
+     * Jika `payment_type = 'SUBSCRIPTION_QUOTA'` dan `refund_amount > 0`: `refund_destination = 'SUBSCRIPTION_QUOTA'` → `UPDATE user_subscriptions SET quota_hours_used = quota_hours_used - :durasi_jam_booking WHERE id = :subscription_id` (mengembalikan jam yang sempat terpotong di §5.2).
+     * Jika `refund_amount = 0` (pembatalan `< 4 jam`): tetap insert `booking_cancellations` untuk audit trail, tanpa mutasi saldo/kuota.
+   * Update `payments.status` = `'REFUNDED'` pada record pembayaran terkait `booking_id` (hanya jika `refund_amount > 0`).
+   * (`COMMIT`)
+4. Response `200 OK` mengembalikan `refund_percentage` & `refund_amount` sesuai kontrak API §5.4.
+
+### 5.6 Alur Pembatalan & Refund Subscription *(baru — hasil analisa; tabel `subscription_refunds` sudah ada di draf v1.0 tapi belum punya narasi alur)*
+
+Mengikuti alur komunikasi draft kontekstual `01_ProductDiscovery.md` §8.2 (angka "30 hari" & SLA proses masih **belum final**, menunggu validasi bisnis/legal — lihat catatan di §8.2 sumber):
+
+1. Pengguna mengajukan pembatalan dari `3.5 Subscriptions` (H-05) → Insert baris baru `subscription_refunds` dengan `status = 'PENDING'`, `refund_amount` dihitung sementara (100% jika `NOW() - user_subscriptions.start_date <= 30 hari`, else `0`).
+2. Notifikasi email/in-app dikirim ke pengguna (di luar cakupan skema — lapisan notifikasi terpisah).
+3. Tim Ops/Finance meninjau via Admin Portal, memperbarui `status` menjadi `'APPROVED'` atau `'REJECTED'` beserta `admin_notes`, `processed_by`, `processed_at`.
+4. Jika `'APPROVED'`: update `user_subscriptions.status = 'CANCELLED'`, `user_subscriptions.auto_renew = FALSE`; nominal `refund_amount` diproses ke metode pembayaran asal (di luar cakupan skema — ditangani Payment Gateway, bukan `wallet_balance`, karena ini pembatalan siklus tagihan bulanan bukan pembatalan sesi per-jam).
+5. Jika `'REJECTED'`: `user_subscriptions` tidak berubah, tetap aktif hingga `end_date`.
+
+> ⚠️ **Asumsi (belum terdokumentasi):** PD §8.2 belum mengunci angka SLA hari kerja proses refund maupun mekanisme pencairan dana (transfer manual vs reversal otomatis PG) — poin 4 di atas adalah asumsi kerja minimal agar skema tetap konsisten, **bukan keputusan final**. Perlu dikonfirmasi bersama `P1-6`/kebijakan final IA screen 1.6 sebelum implementasi.
+
+### 5.7 Alur Deteksi Percobaan Akses Berulang (Security Alert) *(baru — hasil analisa)*
+
+Melengkapi Workflow 3.2 (`03_FunctionalRequirementDocument.md`) dan fail-safe `TOKEN_EXPIRED_OR_INVALID` (§8):
+
+1. Setiap kali Smart Lock mengirim payload akses (valid maupun tidak) ke MQTT topik `/classroom/door/access_req`, backend **selalu** insert satu baris ke `door_access_attempts` (`result = 'SUCCESS'` atau `'TOKEN_EXPIRED_OR_INVALID'`), terlepas dari hasilnya — berbeda dari `room_access_tokens` yang hanya mencatat token yang valid.
+2. Setelah insert gagal (`TOKEN_EXPIRED_OR_INVALID`), jalankan query pengecekan ambang batas:
+   ```sql
+   SELECT COUNT(*) FROM door_access_attempts
+   WHERE room_id = :room_id
+     AND result = 'TOKEN_EXPIRED_OR_INVALID'
+     AND attempted_at >= NOW() - INTERVAL '10 minutes';
+   ```
+3. Jika hasil `COUNT(*) > 3`: kirim notifikasi ke **Studio Admin** (Live Alert Feed, IA §4.7 H-07) — indikasi percobaan akses ilegal pada `room_id` tersebut.
 
 ---
 
@@ -646,6 +801,23 @@ CREATE INDEX idx_audit_logs_filter
 ON audit_logs (target_table, action, created_at DESC);
 ```
 
+### 6.5 Indeks Pendukung Temuan Baru (Wallet, Pembatalan & Security Alert) *(baru — hasil analisa)*
+Mendukung query yang dipakai alur §5.5-§5.7 di atas.
+```sql
+-- Menjaga Business Rule 4 (MAX_CONCURRENT_LOCKS_EXCEEDED): hitung cepat booking PENDING_PAYMENT milik satu user
+CREATE INDEX idx_bookings_user_pending_guard 
+ON bookings (user_id) 
+WHERE status = 'PENDING_PAYMENT';
+
+-- Riwayat wallet pengguna (mirror pola idx_bookings_user_history)
+CREATE INDEX idx_wallet_transactions_user_history 
+ON wallet_transactions (user_id, created_at DESC);
+
+-- Deteksi TOKEN_EXPIRED_OR_INVALID berulang dalam jendela 10 menit (§5.7)
+CREATE INDEX idx_door_access_attempts_alert_window 
+ON door_access_attempts (room_id, result, attempted_at DESC);
+```
+
 ---
 
 ## 7. Desain Struktur Caching & Key-Value Redis
@@ -689,6 +861,7 @@ Sesuai dengan regulasi kepatuhan privasi (GDPR / UU PDP):
    * Kolom `deleted_at` di tabel `users` akan diisi timestamp saat pengguna menghapus akunnya.
    * Seluruh query publik harus mengabaikan record dengan `deleted_at IS NOT NULL`.
    * Setelah 30 hari (masa tunggu pembatalan akun), worker otomatis akan melakukan pengaburan data (*data masking* / anonimisasi) pada kolom sensitif seperti `email` (diubah menjadi `deleted_user_id@anonymized.com`), `name` (`"Deleted User"`), dan `phone` (`"0"`), namun tetap mempertahankan integritas data transaksional di tabel `bookings` dan `payments` demi kepentingan audit laporan keuangan perusahaan.
+   * ⚠️ **Asumsi (belum terdokumentasi — hasil analisa):** Belum ada keputusan bisnis eksplisit di dokumen sumber mengenai nasib `users.wallet_balance` yang masih tersisa saat akun dihapus (dicairkan? hangus? Perlu proses klaim manual?). Untuk sementara, rekomendasi teknis minimal: **blokir proses penghapusan akun (soft delete) jika `wallet_balance > 0`** hingga saldo dihabiskan/dicairkan, agar tidak ada dana pengguna yang hilang diam-diam — ini perlu sign-off produk/finance, bukan keputusan final.
 2. **Kerahasiaan Media (Video Vault)**:
    * Tautan di kolom `raw_video_url` dan `processed_video_url` pada tabel `recordings` menunjuk ke bucket S3 yang diproteksi secara privat.
    * Aplikasi mengakses file menggunakan mekanisme **S3 Presigned URL** dengan masa kedaluwarsa URL maksimal 1 jam, guna mencegah kebocoran data rekaman kelas ke publik yang tidak berhak.
