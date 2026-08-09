@@ -12,6 +12,8 @@
 >
 > **Update tindak lanjut (siklus 4 — cross-check final sebelum UI/UX & prototyping):** Seluruh ID (FR-01-09, NFR-P/S/R-xx, FEAT-xx, H-01-13, kode error, screen 1.1-5.7) diverifikasi 1:1 valid lintas 4 dokumen — tidak ditemukan ID yatim. Tanggal roadmap PD§9↔PRD§9 dan harga PD§8↔§8.1 dikonfirmasi tetap sinkron. **2 temuan baru ditemukan & langsung diperbaiki di IA (naik ke v1.4):** (1) screen 3.5 punya 3 nama berbeda ("Subscriptions"/"Subscription Wallet"/"Subscription") — distandardisasi; (2) §7 Catatan Permission belum punya baris untuk 3.5 & 3.6 meski sudah Done — ditambahkan. **1 gap dicatat, tidak diperbaiki sepihak:** FRD §4 RBAC belum punya baris permission eksplisit untuk Audit Logs (5.5) — H-11 memakai asumsi kerja yang ditandai jujur, dilacak sebagai P2-10 baru di §6.
 
+> **Update tindak lanjut (siklus 5 — awal Tahap 3 Prototyping, 9 Agustus 2026):** Proyek memasuki **Tahap 3 — Prototyping (Google AI Studio)** sesuai `docs/GEMINI_SYSTEM_PROMPT.md`. **5 dari 13 screen** yang sudah punya content hierarchy (IA §4) kini punya prototipe HTML statis (Tailwind CDN): H-01 (`index.html`), H-02 (`in-room.html`), H-06 (`profile.html`), H-07 (`admin/dashboard.html`), H-08 (`admin/rooms.html`) — lihat tabel tracking baru di §8. Cross-check prototipe vs 4 dokumen sumber **tidak menemukan penyimpangan istilah/angka** (kode error, harga, RBAC show/hide semua konsisten 1:1). **3 temuan baru dicatat sebagai P2-11 s/d P2-13 di §6** (bukan diperbaiki sepihak di kode): tautan Quick Link admin yang belum disambungkan ke halaman yang sudah ada, dua stack front-end yang tumpang tindih (scaffold React/Vite kosong vs prototipe HTML aktual), dan status Tahap 3 di `GEMINI_SYSTEM_PROMPT.md` yang belum disinkronkan dengan progres nyata. Seluruh file prototipe pada siklus ini masih **belum di-commit ke git** (untracked) — dicatat sebagai catatan operasional, bukan gap dokumen.
+
 > Dokumen ini **tidak menggantikan** keempat dokumen sumber — setiap klaim di sini merujuk balik ke bagian aslinya. Jika ada perbedaan, dokumen sumber yang menjadi acuan sah.
 
 ---
@@ -140,8 +142,11 @@ Tabel ini adalah log tindak lanjut yang dapat dilacak (*trace-able*) — setiap 
 | P2-8 | Evaluasi apakah roadmap kuartalan (PD §9) dan milestone sprint (PRD §9) tetap dua dokumen terpisah atau dikonsolidasi, mengikuti opsi anti-redundansi di PRD §10.3. | ⏳ Belum dimulai | PD §9, PRD §9-§10 | — |
 | P2-9 | Lengkapi content hierarchy untuk 15 screen sisanya di IA §4.0 (area Public/Guest: Landing, Pricing, Auth, Help, Kebijakan & Ketentuan; alur dasar Booking/Dashboard: Room Detail, Schedule Picker, Success Page, Overview/Home, Active Bookings, E-Ticket, Cancellation Confirmation; In-Room: Room Auth Gate, Studio Live Feed, Session Complete). | ⏳ Belum dimulai | IA §4.0 | Di luar cakupan minimal P1-5; diturunkan prioritasnya ke P2 karena polanya sudah jelas (mengikuti H-01 s/d H-13) dan tidak memblokir mulainya desain visual untuk 13 screen yang sudah Done. |
 | P2-10 | Konfirmasi & tambahkan baris permission eksplisit untuk **Audit Logs (5.5)** di FRD §4 RBAC — ditemukan saat cross-check final bahwa tabel RBAC tidak punya baris untuk fitur ini. | ⏳ Belum dimulai | FRD §4 | Ditemukan saat menulis H-11 (IA §4.11). Untuk sementara H-11 memakai asumsi kerja (Super Admin Full Access, Studio Admin tanpa akses) yang ditandai eksplisit sebagai catatan terbuka, **bukan diklaim sebagai fakta RBAC resmi** — sengaja tidak diperbaiki sepihak di FRD karena ini keputusan produk/keamanan yang butuh sign-off, bukan sekadar koreksi editorial. |
+| P2-11 | Quick Link "Manajemen Ruangan" di prototipe `admin/dashboard.html` (H-07) masih mengarah ke `href="#"`, padahal prototipe H-08 (`admin/rooms.html`) **sudah ada** di repo dan seharusnya sudah bisa ditautkan langsung. | ⏳ Belum dimulai | Prototipe `admin/dashboard.html` (bukan dokumen sumber) | Ditemukan saat cross-check prototipe Tahap 3 vs IA §4.7. Quick Link lain (Hardware/Manual Unlock/Booking&Refund/User&Role) wajar tetap `#` karena H-09/H-10/H-12/H-13 memang belum diprototipekan. |
+| P2-12 | Repo memiliki dua stack front-end yang tumpang tindih: scaffold React+Vite+Tailwind4 (`package.json`, `vite.config.ts`, `src/App.tsx` — `App.tsx` masih kosong/tidak dipakai) di samping prototipe HTML statis + Tailwind CDN yang aktual dipakai (`index.html`, `in-room.html`, dll). Ada juga dua lockfile sekaligus (`bun.lock` kosong & `package-lock.json`). | ⏳ Belum dimulai | Workspace root (bukan dokumen sumber) | Berisiko membingungkan kontributor baru (`npm run dev` merender halaman kosong, bukan prototipe). Perlu keputusan: scaffold React dipertahankan untuk tahap Antigravity nanti (dan didokumentasikan sebagai demikian), atau dihapus jika belum relevan di Tahap 3. Bukan gap dokumen sumber, dicatat di sini agar tidak hilang. |
+| P2-13 | `docs/GEMINI_SYSTEM_PROMPT.md` §"Fase Proyek Saat Ini" masih menandai Prototyping (Google AI Studio) sebagai "⬜ Berikutnya", padahal secara faktual 5 prototipe HTML sudah dibuat di branch `2-design`. | ⏳ Belum dimulai | `docs/GEMINI_SYSTEM_PROMPT.md` | Status perlu diperbarui jadi "🏃 Aktif" begitu prototyping dianggap resmi berjalan, agar system prompt tidak menyesatkan sesi AI Studio berikutnya soal tahap proyek saat ini. |
 
-**Ringkasan status:** Seluruh 3 blocker P0 **sudah selesai** (P0-1, P0-2, P0-3). Seluruh 3 item P1 juga **sudah selesai untuk cakupan yang diminta**: P1-4 (harga final + draft kebijakan refund kontekstual) dan P1-5 (13/28 screen Done, mencakup seluruh cakupan minimal Admin Portal/Subscription/Account Profile), sementara P1-6 **sengaja ditunda** ke sesi desain backend sesuai arahan. Cross-check final (siklus 4) tidak menemukan ID yatim atau drift tanggal/harga, tapi menemukan & langsung memperbaiki 2 inkonsistensi penamaan/kelengkapan di IA, plus mencatat 1 gap RBAC baru (P2-10) yang sengaja tidak diputuskan sepihak. P2-9 dan P2-10 belum dikerjakan pada siklus ini — **tidak memblokir mulainya UI/UX & prototyping** untuk 13 screen yang sudah Done.
+**Ringkasan status:** Seluruh 3 blocker P0 **sudah selesai** (P0-1, P0-2, P0-3). Seluruh 3 item P1 juga **sudah selesai untuk cakupan yang diminta**: P1-4 (harga final + draft kebijakan refund kontekstual) dan P1-5 (13/28 screen Done, mencakup seluruh cakupan minimal Admin Portal/Subscription/Account Profile), sementara P1-6 **sengaja ditunda** ke sesi desain backend sesuai arahan. Cross-check final (siklus 4) tidak menemukan ID yatim atau drift tanggal/harga, tapi menemukan & langsung memperbaiki 2 inkonsistensi penamaan/kelengkapan di IA, plus mencatat 1 gap RBAC baru (P2-10) yang sengaja tidak diputuskan sepihak. Cross-check siklus 5 (awal Tahap 3 Prototyping) menambahkan 3 temuan operasional baru (P2-11 s/d P2-13) di prototipe/workspace — bukan di dokumen sumber. P2-9 s/d P2-13 belum dikerjakan pada siklus ini — **tidak memblokir kelanjutan prototyping** untuk 8 screen Done yang belum diprototipekan.
 
 ---
 
@@ -162,4 +167,28 @@ Tabel ini adalah log tindak lanjut yang dapat dilacak (*trace-able*) — setiap 
 
 ---
 
-*Dokumen ini sebaiknya diperbarui ulang setiap kali salah satu dari 4 dokumen sumber naik versi mayor, agar tetap menjadi ringkasan yang akurat.*
+## 8. Tracking Progres Tahap 3 — Prototyping (Google AI Studio)
+
+> **Catatan cakupan:** Tabel ini melacak progres **prototipe kode** (HTML/React, di luar 4 dokumen sumber), bukan dokumen. Ditambahkan siklus 5 agar progres Tahap 3 tidak lagi hanya tersirat dari isi repo, mengikuti prinsip yang sama dengan tabel Cakupan Screen Hierarchy di IA §4.0 (anti-berulangnya Temuan #6).
+
+| Screen (H-xx) | File Prototipe | Status | Catatan |
+| :--- | :--- | :---: | :--- |
+| H-01 Catalog Search | `index.html` | ✅ Done | Termasuk simulasi Empty State & `SLOT_ALREADY_LOCKED`. |
+| H-02 In-Room Control Panel | `in-room.html` | ✅ Done | Termasuk simulasi timer & `IOT_GATEWAY_OFFLINE`. |
+| H-03 Checkout & Payment | — | ⏳ Belum dimulai | — |
+| H-04 Cloud Video Vault | — | ⏳ Belum dimulai | — |
+| H-05 Subscriptions | — | ⏳ Belum dimulai | — |
+| H-06 Account Profile | `profile.html` | ✅ Done | Termasuk toggle simulasi role Member/Premium untuk uji RBAC IA §7. |
+| H-07 Ops Dashboard | `admin/dashboard.html` | ✅ Done* | *Menggabungkan juga modul "Catat Biaya Late Checkout Manual" yang menurut IA §4.12 milik H-12 (Booking & Refund Management), bukan H-07 — perlu dipisah saat H-12 dibangun sebagai screen sendiri, atau didokumentasikan sebagai keputusan desain sengaja. Quick Link internal lihat P2-11. |
+| H-08 Room Management | `admin/rooms.html` | ✅ Done | — |
+| H-09 Hardware Status | — | ⏳ Belum dimulai | — |
+| H-10 Manual Unlock | — | ⏳ Belum dimulai | — |
+| H-11 Audit Logs | — | ⏳ Belum dimulai | Tunggu P2-10 (RBAC Audit Logs) sebelum difinalisasi. |
+| H-12 Booking & Refund Management | — | ⏳ Belum dimulai | Lihat catatan H-07 di atas — sebagian kontennya sudah "bocor" ke dashboard. |
+| H-13 User & Role Management | — | ⏳ Belum dimulai | — |
+
+**Ringkasan:** 5 dari 13 screen Done (H-01–H-13) sudah punya prototipe (38%). Tidak ditemukan penyimpangan istilah/harga/kode error terhadap dokumen sumber pada 5 prototipe yang ada. 3 temuan operasional dicatat sebagai P2-11 s/d P2-13 di §6.
+
+---
+
+*Dokumen ini sebaiknya diperbarui ulang setiap kali salah satu dari 4 dokumen sumber naik versi mayor, atau setiap kali progres Tahap 3 Prototyping bertambah signifikan, agar tetap menjadi ringkasan yang akurat.*
