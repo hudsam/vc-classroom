@@ -1,13 +1,20 @@
 # Dokumen Peta Jalan Pengembangan (Development Roadmap): Platform Sewa Smart Classroom
 
-**Versi:** 1.0  
+**Versi:** 1.1  
 **Tanggal:** 9 Agustus 2026  
 **Status:** Draf Peta Jalan Teknis  
 **Dokumen Terkait:**
-* [5-SYSDesign.md](5-SYSDesign.md) (Rancangan Sistem & Arsitektur)
+* [5-SYSDesign.md](5-SYSDesign.md) (Rancangan Sistem & Arsitektur — lihat §1.2 untuk status implementasi komponen)
 * [6-TechnologyStack.md](6-TechnologyStack.md) (Spesifikasi Tech Stack)
 * [7-FolderStructure.md](7-FolderStructure.md) (Struktur Folder Proyek)
 * [X_ProgressSummary.md](../docs/X_ProgressSummary.md) (Rincian Progres & Backlog Asli)
+
+### Riwayat Revisi
+
+| Versi | Bagian | Sebelum | Sesudah |
+| :--- | :--- | :--- | :--- |
+| 1.0 | Dokumen (keseluruhan) | — | Draf awal peta jalan pengembangan. |
+| 1.1 | Gantt Fase 4/5, §2.1, §2.3, §2.4 | Cross-check terhadap `.env` & source code aktual menemukan: (1) tag `:todo,` pada Gantt bukan kata kunci status Mermaid yang valid (hanya `done`/`active`/`crit`/`milestone`), berisiko salah-parse kolom id/tanggal; (2) §2.1 "5 Peran" ambigu terhadap `role_enum` 4-role di `3-DBSchema.md`; (3) §2.3 mengklaim koneksi live PostgreSQL & Redis masih "sisa rencana", padahal `DATABASE_URL` di `.env` sudah live Aiven — hanya `REDIS_URL` yang masih `localhost`; daftar "Sudah Diimplementasikan" juga tidak menyebut route admin (`bookings`/`rooms`/`door`) & `users.routes.js` yang sudah ada di kode; (4) §2.4 menandai seluruh integrasi frontend sebagai "Akan Datang", padahal `index.html` sudah memanggil `GET /rooms` nyata (bukan data dummy lagi). | Diperbaiki langsung agar status roadmap mencerminkan kode & `.env` aktual per tanggal dokumen. |
 
 ---
 
@@ -26,10 +33,12 @@ gantt
     section Fase 3
     Backend API Server (Express)       :active,  des3, 2026-08-01, 2026-08-10
     section Fase 4
-    Integrasi Frontend (Fetch Hookup)  :todo,    des4, 2026-08-11, 2026-08-20
+    Integrasi Frontend (Fetch Hookup)  :        des4, 2026-08-11, 2026-08-20
     section Fase 5
-    Pengujian Live & Deployment        :todo,    des5, 2026-08-21, 2026-08-30
+    Pengujian Live & Deployment        :        des5, 2026-08-21, 2026-08-30
 ```
+
+> Catatan Gantt: tag status Mermaid yang valid hanya `done`, `active`, `crit`, atau `milestone` — tag `todo` sebelumnya bukan kata kunci yang dikenali dan berisiko salah-parse kolom `id`/tanggal berikutnya, sehingga dihapus (Fase 4 & 5 kini memakai gaya default "belum berjalan").
 
 ---
 
@@ -37,7 +46,7 @@ gantt
 
 ### 2.1 Fase 1: Analisis & Penemuan Produk (Selesai - 100%)
 * **Hasil**: Penyusunan dokumen discovery bisnis, PRD (Product Requirement Document), FRD (Functional Requirement Document), dan IA (Information Architecture) yang terletak di folder `docs/`.
-* **Output Kunci**: Matriks RBAC (5 Peran), Spesifikasi Harga Add-on, Ketentuan Refund, dan Alur Pemesanan Kelas.
+* **Output Kunci**: Matriks RBAC (5 tier: `Guest` (unauth) + 4 role tersimpan — `Member`, `Premium Member`, `Studio Admin`, `Super Admin`, lihat `role_enum` di [3-DBSchema.md](3-DBSchema.md) §4), Spesifikasi Harga Add-on, Ketentuan Refund, dan Alur Pemesanan Kelas.
 
 ### 2.2 Fase 2: Desain Database & Prototipe Antarmuka (Selesai - 100%)
 * **Hasil**: 
@@ -54,14 +63,16 @@ Fase ini memfokuskan pada penulisan logika Express.js backend untuk melayani 5 h
   * API Pemesanan Hold Slot Terdistribusi dengan Redis (`POST /bookings/hold`).
   * API Bootstrap Dashboard Kelas & Aksi Rekaman (`GET /studio/session`, `/record/action`).
   * API Langganan & Kuota (`GET /subscriptions/{user_id}/quota`).
-  * API Dashboard Admin & Audit Logs (`GET /admin/dashboard/metrics`, `/admin/audit-logs`).
+  * API Dashboard Admin & Audit Logs (`GET /admin/dashboard/metrics`, `/admin/alerts`, `/admin/audit-logs`).
+  * API Manajemen Profil Pengguna (`GET/PUT /users/me`, `PUT /users/me/2fa`, `DELETE /users/me`).
+  * API Admin: manajemen inventori ruangan (`admin/rooms.routes.js`), denda keterlambatan checkout (`POST /admin/bookings/{id}/late-checkout`), dan override buka pintu manual (`POST /admin/studio/door/unlock`).
 * **Sisa Rencana Fase 3**:
-  * Konfigurasi `.env` asli untuk menghubungkan server Express ke live PostgreSQL (Aiven) dan Live Redis.
+  * Migrasi `REDIS_URL` di `.env` dari `localhost` ke instance Redis live/cloud (`DATABASE_URL` sudah live Aiven PostgreSQL — bagian ini sudah selesai).
 
-### 2.4 Fase 4: Integrasi Frontend & API Fetch (Akan Datang)
+### 2.4 Fase 4: Integrasi Frontend & API Fetch (Sudah Dimulai)
 Mengganti seluruh data statis/dummy di halaman HTML dengan pemanggilan fetch API riil dari backend.
-* **Target Kerja**:
-  * Mengintegrasikan `index.html` dengan `GET /rooms`.
+* **Sudah Diimplementasikan**: `index.html` sudah memanggil `GET /rooms` nyata (fungsi `fetchRooms()`, bukan data dummy lagi) — halaman lain (`in-room.html`, `profile.html`, `admin/*.html`) masih 0 pemanggilan `fetch()`.
+* **Sisa Target Kerja**:
   * Mengintegrasikan `in-room.html` dengan `/studio/session` dan pemicu `/record/action`.
   * Mengintegrasikan `profile.html` dengan `/users/me` dan status kuota langganan.
   * Mengintegrasikan halaman admin dengan dashboard metrik dan logs operasional asli.
