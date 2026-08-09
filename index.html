@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,7 +49,7 @@
             color: #131b2e;
             -webkit-font-smoothing: antialiased;
         }
-        
+
         /* Custom Checkbox */
         .custom-checkbox {
             appearance: none;
@@ -63,10 +64,12 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .custom-checkbox:checked {
             background-color: #2563eb;
             border-color: #2563eb;
         }
+
         .custom-checkbox:checked::after {
             content: '';
             width: 10px;
@@ -79,10 +82,11 @@
 
         /* Image Gradients */
         .img-overlay {
-            background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6) 100%);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.6) 100%);
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
 
     <!-- Header Navigation -->
@@ -91,7 +95,8 @@
             <!-- Left: Logo & Location -->
             <div class="flex items-center gap-6">
                 <a href="#" class="text-2xl font-bold tracking-tight text-surface-text">VC-SCR</a>
-                <button class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-surface-border hover:bg-brand-50 transition-colors">
+                <button
+                    class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-surface-border hover:bg-brand-50 transition-colors">
                     <i data-lucide="map-pin" class="w-4 h-4 text-brand-500"></i>
                     <span class="text-sm font-medium">Jakarta, ID</span>
                     <i data-lucide="chevron-down" class="w-4 h-4 text-surface-textAlt"></i>
@@ -101,8 +106,9 @@
             <!-- Center: Search -->
             <div class="flex-1 max-w-xl hidden lg:block">
                 <div class="relative">
-                    <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-surface-textAlt"></i>
-                    <input type="text" placeholder="Cari ruangan, lokasi, atau fasilitas..." 
+                    <i data-lucide="search"
+                        class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-surface-textAlt"></i>
+                    <input type="text" placeholder="Cari ruangan, lokasi, atau fasilitas..."
                         class="w-full pl-10 pr-4 py-2 bg-brand-50 border border-transparent focus:border-brand-500 focus:bg-white rounded-lg outline-none transition-all text-sm placeholder:text-surface-textAlt">
                 </div>
             </div>
@@ -110,13 +116,19 @@
             <!-- Right: Nav Links & Actions -->
             <div class="flex items-center gap-6">
                 <nav class="hidden md:flex items-center gap-6 h-full">
-                    <a href="/" class="text-sm font-medium text-brand-500 border-b-2 border-brand-500 h-16 flex items-center">Catalog</a>
-                    <a href="/profile.html" class="text-sm font-medium text-surface-textAlt hover:text-surface-text transition-colors">Profile</a>
-                    <a href="#" class="text-sm font-medium text-surface-textAlt hover:text-surface-text transition-colors">Support</a>
+                    <a href="/"
+                        class="text-sm font-medium text-brand-500 border-b-2 border-brand-500 h-16 flex items-center">Catalog</a>
+                    <a href="/profile.html"
+                        class="text-sm font-medium text-surface-textAlt hover:text-surface-text transition-colors">Profile</a>
+                    <a href="#"
+                        class="text-sm font-medium text-surface-textAlt hover:text-surface-text transition-colors">Support</a>
                 </nav>
                 <div class="flex items-center gap-4">
-                    <button class="text-sm font-medium text-surface-text hover:text-brand-500 transition-colors hidden sm:block">Sign In</button>
-                    <button class="bg-brand-400 hover:bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                    <button
+                        class="text-sm font-medium text-surface-text hover:text-brand-500 transition-colors hidden sm:block">Sign
+                        In</button>
+                    <button
+                        class="bg-brand-400 hover:bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                         Book Now
                     </button>
                 </div>
@@ -126,9 +138,10 @@
 
     <!-- Main Layout -->
     <main class="flex-1 max-w-[1440px] w-full mx-auto flex flex-col md:flex-row">
-        
+
         <!-- Sidebar Filters -->
-        <aside class="w-full md:w-[320px] shrink-0 border-r border-surface-border bg-white p-6 hidden md:block min-h-[calc(100vh-64px)]">
+        <aside
+            class="w-full md:w-[320px] shrink-0 border-r border-surface-border bg-white p-6 hidden md:block min-h-[calc(100vh-64px)]">
             <div class="flex items-center justify-between mb-8">
                 <h2 class="text-xl font-semibold">Filters</h2>
                 <i data-lucide="sliders-horizontal" class="w-5 h-5 text-surface-textAlt"></i>
@@ -137,7 +150,8 @@
             <!-- Filter: Waktu & Tanggal -->
             <div class="mb-8">
                 <h3 class="text-xs font-semibold tracking-widest text-brand-500 uppercase mb-3">Waktu & Tanggal</h3>
-                <button class="w-full flex items-center gap-3 px-3 py-2.5 bg-brand-50 border border-brand-100 rounded-lg hover:border-brand-300 transition-colors text-left">
+                <button
+                    class="w-full flex items-center gap-3 px-3 py-2.5 bg-brand-50 border border-brand-100 rounded-lg hover:border-brand-300 transition-colors text-left">
                     <i data-lucide="calendar" class="w-5 h-5 text-surface-textAlt"></i>
                     <span class="text-sm font-medium">Hari Ini, 09:00 - 11:00</span>
                 </button>
@@ -147,9 +161,15 @@
             <div class="mb-8">
                 <h3 class="text-xs font-semibold tracking-widest text-brand-500 uppercase mb-3">Kapasitas</h3>
                 <div class="flex flex-wrap gap-2">
-                    <button class="px-4 py-1.5 rounded-full border border-brand-400 bg-brand-50 text-brand-500 text-sm font-medium">1-10 Org</button>
-                    <button class="px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors">11-30 Org</button>
-                    <button class="px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors">31-50 Org</button>
+                    <button
+                        class="px-4 py-1.5 rounded-full border border-brand-400 bg-brand-50 text-brand-500 text-sm font-medium">1-10
+                        Org</button>
+                    <button
+                        class="px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors">11-30
+                        Org</button>
+                    <button
+                        class="px-4 py-1.5 rounded-full border border-surface-border bg-white hover:bg-brand-50 text-surface-text text-sm font-medium transition-colors">31-50
+                        Org</button>
                 </div>
             </div>
 
@@ -159,19 +179,27 @@
                 <div class="flex flex-col gap-3">
                     <label class="flex items-center gap-3 cursor-pointer group">
                         <input type="checkbox" checked class="custom-checkbox">
-                        <span class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Smart Board</span>
+                        <span
+                            class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Smart
+                            Board</span>
                     </label>
                     <label class="flex items-center gap-3 cursor-pointer group">
                         <input type="checkbox" class="custom-checkbox">
-                        <span class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Multi-Cam AI</span>
+                        <span
+                            class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Multi-Cam
+                            AI</span>
                     </label>
                     <label class="flex items-center gap-3 cursor-pointer group">
                         <input type="checkbox" class="custom-checkbox">
-                        <span class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Studio Podcasting</span>
+                        <span
+                            class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Studio
+                            Podcasting</span>
                     </label>
                     <label class="flex items-center gap-3 cursor-pointer group">
                         <input type="checkbox" checked class="custom-checkbox">
-                        <span class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Audio Array</span>
+                        <span
+                            class="text-sm font-medium text-surface-text group-hover:text-brand-500 transition-colors">Audio
+                            Array</span>
                     </label>
                 </div>
             </div>
@@ -183,8 +211,12 @@
                     <!-- Visual Mockup of Range Slider -->
                     <div class="relative h-1 bg-surface-border rounded-full flex items-center">
                         <div class="absolute left-[20%] right-[30%] h-full bg-brand-400 rounded-full"></div>
-                        <div class="absolute left-[20%] w-4 h-4 rounded-full bg-brand-400 shadow cursor-pointer -translate-x-1/2"></div>
-                        <div class="absolute right-[30%] w-4 h-4 rounded-full bg-brand-400 shadow cursor-pointer translate-x-1/2"></div>
+                        <div
+                            class="absolute left-[20%] w-4 h-4 rounded-full bg-brand-400 shadow cursor-pointer -translate-x-1/2">
+                        </div>
+                        <div
+                            class="absolute right-[30%] w-4 h-4 rounded-full bg-brand-400 shadow cursor-pointer translate-x-1/2">
+                        </div>
                     </div>
                     <div class="flex justify-between items-center mt-4 text-xs font-medium text-surface-textAlt">
                         <span>Rp 150.000</span>
@@ -195,10 +227,12 @@
 
             <!-- Filter Actions -->
             <div class="flex flex-col gap-3">
-                <button class="w-full bg-brand-400 hover:bg-brand-500 text-white py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
+                <button
+                    class="w-full bg-brand-400 hover:bg-brand-500 text-white py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
                     Terapkan Filter
                 </button>
-                <button class="w-full bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-2.5 rounded-lg font-medium text-sm transition-colors">
+                <button
+                    class="w-full bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-2.5 rounded-lg font-medium text-sm transition-colors">
                     Reset
                 </button>
             </div>
@@ -206,21 +240,25 @@
 
         <!-- Right Content Area -->
         <div class="flex-1 p-6 md:p-8 bg-surface-bg w-full">
-            
+
             <!-- Locked Alert Banner (Hidden by default) -->
-            <div id="alertBanner" class="hidden mb-6 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg p-4 flex items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div id="alertBanner"
+                class="hidden mb-6 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg p-4 flex items-start sm:items-center justify-between gap-4 shadow-sm">
                 <div class="flex items-start sm:items-center gap-3">
                     <i data-lucide="triangle-alert" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5 sm:mt-0"></i>
-                    <p class="text-sm font-medium text-amber-900">Slot waktu yang Anda pilih baru saja dipesan oleh pengguna lain.</p>
+                    <p class="text-sm font-medium text-amber-900">Slot waktu yang Anda pilih baru saja dipesan oleh
+                        pengguna lain.</p>
                 </div>
-                <button class="text-sm font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap">Update Availability</button>
+                <button class="text-sm font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap">Update
+                    Availability</button>
             </div>
 
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
                 <div>
                     <h1 class="text-3xl font-bold tracking-tight mb-2">Ruangan Tersedia</h1>
-                    <p id="resultText" class="text-surface-textAlt font-medium">12 ruangan ditemukan sesuai filter Anda</p>
+                    <p id="resultText" class="text-surface-textAlt font-medium">12 ruangan ditemukan sesuai filter Anda
+                    </p>
                 </div>
                 <div class="flex items-center gap-3 bg-brand-50 px-4 py-2 rounded-lg border border-brand-100">
                     <span class="text-sm text-surface-textAlt">Urutkan:</span>
@@ -233,53 +271,66 @@
 
             <!-- Catalog Grid -->
             <div id="catalogGrid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                
+
                 <!-- Card 1: Alpha Strategy Room -->
-                <div class="bg-white rounded-xl border border-surface-border shadow-flat-plus overflow-hidden flex flex-col transition-transform hover:-translate-y-1 hover:shadow-md duration-200">
+                <div
+                    class="bg-white rounded-xl border border-surface-border shadow-flat-plus overflow-hidden flex flex-col transition-transform hover:-translate-y-1 hover:shadow-md duration-200">
                     <!-- Thumbnail -->
                     <div class="h-48 relative bg-gray-200">
-                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000&auto=format&fit=crop" alt="Alpha Strategy Room" class="w-full h-full object-cover">
+                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000&auto=format&fit=crop"
+                            alt="Alpha Strategy Room" class="w-full h-full object-cover">
                         <div class="absolute inset-0 img-overlay"></div>
-                        
+
                         <!-- Status Badge: Available -->
-                        <div class="absolute top-4 left-4 bg-brand-100 text-brand-500 px-2.5 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
+                        <div
+                            class="absolute top-4 left-4 bg-brand-100 text-brand-500 px-2.5 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
                             <div class="w-2 h-2 rounded-full bg-brand-500"></div>
                             <span class="text-xs font-semibold tracking-wide">Tersedia</span>
                         </div>
-                        
+
                         <!-- Capacity Badge -->
-                        <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur px-2.5 py-1 rounded flex items-center gap-1.5 shadow-sm">
+                        <div
+                            class="absolute bottom-4 right-4 bg-white/95 backdrop-blur px-2.5 py-1 rounded flex items-center gap-1.5 shadow-sm">
                             <i data-lucide="users" class="w-3.5 h-3.5 text-surface-textAlt"></i>
                             <span class="text-xs font-semibold text-surface-text">Maks 15 Orang</span>
                         </div>
                     </div>
-                    
+
                     <!-- Content -->
                     <div class="p-5 flex flex-col flex-1">
                         <div class="flex justify-between items-start gap-4 mb-2">
                             <h3 class="text-lg font-bold leading-tight">Alpha Strategy Room</h3>
                             <div class="text-right shrink-0">
-                                <div class="text-brand-500 font-bold text-xl leading-none tracking-tight">Rp 250.000<span class="text-xs font-medium text-surface-textAlt tracking-normal">/jam</span></div>
+                                <div class="text-brand-500 font-bold text-xl leading-none tracking-tight">Rp
+                                    250.000<span
+                                        class="text-xs font-medium text-surface-textAlt tracking-normal">/jam</span>
+                                </div>
                             </div>
                         </div>
-                        
+
                         <div class="flex items-center gap-1.5 text-surface-textAlt mb-4">
                             <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
                             <span class="text-xs font-medium">Lantai 4, Tower B</span>
                         </div>
-                        
+
                         <!-- Chips -->
                         <div class="flex flex-wrap gap-2 mb-6 mt-auto">
-                            <span class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">Smart Board</span>
-                            <span class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">Multi-Cam AI</span>
+                            <span
+                                class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">Smart
+                                Board</span>
+                            <span
+                                class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">Multi-Cam
+                                AI</span>
                         </div>
-                        
+
                         <!-- Divider & Actions -->
                         <div class="border-t border-surface-border pt-4 flex gap-3 mt-auto">
-                            <button class="flex-1 bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-2 rounded-lg font-medium text-sm transition-colors">
+                            <button
+                                class="flex-1 bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-2 rounded-lg font-medium text-sm transition-colors">
                                 Detail
                             </button>
-                            <button id="btnPilihJadwal" class="flex-1 bg-brand-400 hover:bg-brand-500 text-white py-2 rounded-lg font-medium text-sm transition-colors shadow-sm">
+                            <button id="btnPilihJadwal"
+                                class="flex-1 bg-brand-400 hover:bg-brand-500 text-white py-2 rounded-lg font-medium text-sm transition-colors shadow-sm">
                                 Pilih Jadwal
                             </button>
                         </div>
@@ -287,51 +338,65 @@
                 </div>
 
                 <!-- Card 2: Broadcast Pod 1 -->
-                <div class="bg-white rounded-xl border border-surface-border shadow-flat-plus overflow-hidden flex flex-col transition-transform hover:-translate-y-1 hover:shadow-md duration-200">
+                <div
+                    class="bg-white rounded-xl border border-surface-border shadow-flat-plus overflow-hidden flex flex-col transition-transform hover:-translate-y-1 hover:shadow-md duration-200">
                     <!-- Thumbnail -->
                     <div class="h-48 relative bg-gray-200">
-                        <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1000&auto=format&fit=crop" alt="Broadcast Pod 1" class="w-full h-full object-cover">
+                        <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1000&auto=format&fit=crop"
+                            alt="Broadcast Pod 1" class="w-full h-full object-cover">
                         <div class="absolute inset-0 img-overlay"></div>
-                        
+
                         <!-- Status Badge: Occupied -->
-                        <div class="absolute top-4 left-4 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
+                        <div
+                            class="absolute top-4 left-4 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
                             <div class="w-2 h-2 rounded-full bg-gray-500"></div>
                             <span class="text-xs font-semibold tracking-wide">Terisi hingga 13:00</span>
                         </div>
-                        
+
                         <!-- Capacity Badge -->
-                        <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur px-2.5 py-1 rounded flex items-center gap-1.5 shadow-sm">
+                        <div
+                            class="absolute bottom-4 right-4 bg-white/95 backdrop-blur px-2.5 py-1 rounded flex items-center gap-1.5 shadow-sm">
                             <i data-lucide="users" class="w-3.5 h-3.5 text-surface-textAlt"></i>
                             <span class="text-xs font-semibold text-surface-text">Maks 4 Orang</span>
                         </div>
                     </div>
-                    
+
                     <!-- Content -->
                     <div class="p-5 flex flex-col flex-1">
                         <div class="flex justify-between items-start gap-4 mb-2">
                             <h3 class="text-lg font-bold leading-tight">Broadcast Pod 1</h3>
                             <div class="text-right shrink-0">
-                                <div class="text-brand-500 font-bold text-xl leading-none tracking-tight">Rp 150.000<span class="text-xs font-medium text-surface-textAlt tracking-normal">/jam</span></div>
+                                <div class="text-brand-500 font-bold text-xl leading-none tracking-tight">Rp
+                                    150.000<span
+                                        class="text-xs font-medium text-surface-textAlt tracking-normal">/jam</span>
+                                </div>
                             </div>
                         </div>
-                        
+
                         <div class="flex items-center gap-1.5 text-surface-textAlt mb-4">
                             <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
                             <span class="text-xs font-medium">Lantai 2, Media Wing</span>
                         </div>
-                        
+
                         <!-- Chips -->
                         <div class="flex flex-wrap gap-2 mb-6 mt-auto">
-                            <span class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">Studio Podcasting</span>
-                            <span class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">Audio Array</span>
+                            <span
+                                class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">Studio
+                                Podcasting</span>
+                            <span
+                                class="bg-brand-50 border border-brand-100 text-surface-textAlt px-2.5 py-1 rounded-md text-xs font-medium">Audio
+                                Array</span>
                         </div>
-                        
+
                         <!-- Divider & Actions -->
                         <div class="border-t border-surface-border pt-4 flex gap-3 mt-auto">
-                            <button class="flex-1 bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-2 rounded-lg font-medium text-sm transition-colors">
+                            <button
+                                class="flex-1 bg-white border border-surface-border hover:bg-brand-50 text-surface-text py-2 rounded-lg font-medium text-sm transition-colors">
                                 Detail
                             </button>
-                            <button class="flex-1 bg-surface-border text-surface-textAlt py-2 rounded-lg font-medium text-sm cursor-not-allowed" disabled>
+                            <button
+                                class="flex-1 bg-surface-border text-surface-textAlt py-2 rounded-lg font-medium text-sm cursor-not-allowed"
+                                disabled>
                                 Jadwal Penuh
                             </button>
                         </div>
@@ -346,8 +411,10 @@
                     <i data-lucide="search-x" class="w-8 h-8"></i>
                 </div>
                 <h3 class="text-2xl font-bold mb-3">Ruangan tidak ditemukan untuk filter ini</h3>
-                <p class="text-surface-textAlt max-w-md mb-8">Coba sesuaikan filter Anda atau reset untuk melihat semua pilihan ruangan yang tersedia.</p>
-                <button class="bg-brand-400 hover:bg-brand-500 text-white px-6 py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
+                <p class="text-surface-textAlt max-w-md mb-8">Coba sesuaikan filter Anda atau reset untuk melihat semua
+                    pilihan ruangan yang tersedia.</p>
+                <button
+                    class="bg-brand-400 hover:bg-brand-500 text-white px-6 py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
                     Reset Filter
                 </button>
             </div>
@@ -356,31 +423,37 @@
     </main>
 
     <!-- Edge Case Simulation Control Panel -->
-    <div class="fixed bottom-6 right-6 bg-white rounded-xl border border-surface-border shadow-xl z-50 w-80 transition-all duration-300 group overflow-hidden">
-        <div class="w-full flex items-center justify-between p-4 bg-white group-hover:bg-brand-50 cursor-pointer transition-colors border-b border-transparent group-hover:border-surface-border">
+    <div
+        class="fixed bottom-6 right-6 bg-white rounded-xl border border-surface-border shadow-xl z-50 w-80 transition-all duration-300 group overflow-hidden">
+        <div
+            class="w-full flex items-center justify-between p-4 bg-white group-hover:bg-brand-50 cursor-pointer transition-colors border-b border-transparent group-hover:border-surface-border">
             <div class="flex items-center gap-2">
                 <i data-lucide="settings-2" class="w-4 h-4 text-brand-500"></i>
                 <h4 class="font-bold text-sm uppercase tracking-wider text-brand-500">Simulation</h4>
             </div>
-            <i data-lucide="chevron-up" class="w-5 h-5 text-surface-textAlt group-hover:text-brand-500 transition-transform duration-300 group-hover:rotate-180"></i>
+            <i data-lucide="chevron-up"
+                class="w-5 h-5 text-surface-textAlt group-hover:text-brand-500 transition-transform duration-300 group-hover:rotate-180"></i>
         </div>
-        
-        <div class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-in-out">
+
+        <div
+            class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-in-out">
             <div class="overflow-hidden">
                 <div class="px-5 pb-5 pt-4 flex flex-col gap-4 bg-white">
                     <label class="flex items-start gap-3 cursor-pointer hover:opacity-80">
                         <input type="checkbox" id="simEmpty" class="custom-checkbox mt-0.5 shrink-0">
                         <div>
                             <span class="text-sm font-semibold text-surface-text block">Simulate No Results</span>
-                            <span class="text-xs text-surface-textAlt block mt-0.5">Memaksa katalog masuk ke Empty State</span>
+                            <span class="text-xs text-surface-textAlt block mt-0.5">Memaksa katalog masuk ke Empty
+                                State</span>
                         </div>
                     </label>
-                    
+
                     <label class="flex items-start gap-3 cursor-pointer hover:opacity-80">
                         <input type="checkbox" id="simLocked" class="custom-checkbox mt-0.5 shrink-0">
                         <div>
                             <span class="text-sm font-semibold text-surface-text block">Simulate Slot Locked</span>
-                            <span class="text-xs text-surface-textAlt block mt-0.5">Menampilkan indikator ruangan terkunci</span>
+                            <span class="text-xs text-surface-textAlt block mt-0.5">Menampilkan indikator ruangan
+                                terkunci</span>
                         </div>
                     </label>
                 </div>
@@ -396,7 +469,7 @@
         // Edge Case Simulation Logic
         const simEmptyCheckbox = document.getElementById('simEmpty');
         const simLockedCheckbox = document.getElementById('simLocked');
-        
+
         const catalogGrid = document.getElementById('catalogGrid');
         const emptyState = document.getElementById('emptyState');
         const resultText = document.getElementById('resultText');
@@ -415,7 +488,7 @@
                 emptyState.classList.remove('hidden');
                 emptyState.classList.add('flex');
                 resultText.innerText = "0 ruangan ditemukan sesuai filter Anda";
-                
+
                 // Disable locked simulation if empty is active
                 simLockedCheckbox.disabled = true;
                 simLockedCheckbox.parentElement.style.opacity = '0.5';
@@ -424,7 +497,7 @@
                 emptyState.classList.add('hidden');
                 emptyState.classList.remove('flex');
                 resultText.innerText = originalResultText;
-                
+
                 simLockedCheckbox.disabled = false;
                 simLockedCheckbox.parentElement.style.opacity = '1';
             }
@@ -435,7 +508,7 @@
             if (e.target.checked) {
                 // Show Alert Banner
                 alertBanner.classList.remove('hidden');
-                
+
                 // Change Button to 'Locked' State (Simulating SLOCK_ALREADY_LOCKED visual feedback)
                 btnPilihJadwal.innerHTML = 'Sedang Dipesan';
                 btnPilihJadwal.className = 'flex-1 bg-amber-100 text-amber-700 py-2 rounded-lg font-semibold text-sm cursor-not-allowed border border-amber-200 shadow-inner';
@@ -452,7 +525,7 @@
             } else {
                 // Hide Alert Banner
                 alertBanner.classList.add('hidden');
-                
+
                 // Restore Button State
                 btnPilihJadwal.innerHTML = originalBtnHTML;
                 btnPilihJadwal.className = originalBtnClass;
@@ -461,5 +534,5 @@
         });
     </script>
 </body>
-</html>
 
+</html>
