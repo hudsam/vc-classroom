@@ -1,13 +1,20 @@
 # Dokumen Strategi & Rencana Pengujian (Testing Strategy): Platform Sewa Smart Classroom
 
-**Versi:** 1.0  
+**Versi:** 1.1  
 **Tanggal:** 9 Agustus 2026  
 **Status:** Draf Strategi Pengujian Produksi  
 **Dokumen Terkait:**
 * [2-UITesting.md](2-UITesting.md) (Panduan Operasional Uji Coba Prototipe)
-* [5-SYSDesign.md](5-SYSDesign.md) (Desain Sistem & Arsitektur)
+* [5-SYSDesign.md](5-SYSDesign.md) (Desain Sistem & Arsitektur — lihat §1.2 untuk status implementasi komponen)
 * [6-TechnologyStack.md](6-TechnologyStack.md) (Spesifikasi Tech Stack)
 * [X_ProgressSummary.md](../docs/X_ProgressSummary.md) (Backlog & Progres Proyek)
+
+### Riwayat Revisi
+
+| Versi | Bagian | Sebelum | Sesudah |
+| :--- | :--- | :--- | :--- |
+| 1.0 | Dokumen (keseluruhan) | — | Draf awal strategi pengujian. |
+| 1.1 | §2.5, §2.6, §2.7, §2.9 | §2.7 menguji role `USER` yang tidak ada di `role_enum` (nilai sebenarnya: `MEMBER`/`PREMIUM_MEMBER`/`STUDIO_ADMIN`/`SUPER_ADMIN`, lihat [3-DBSchema.md](3-DBSchema.md) §4 & [5-SYSDesign.md](5-SYSDesign.md) §5.1); §2.6 mencantumkan target latensi API <100ms tanpa sumber NFR (NFR-P01 PRD sebenarnya soal loading halaman <2 detik, bukan latensi API backend); §2.5 & §2.9 menguji alur smart lock/AI transkripsi seolah sudah bisa dijalankan hari ini, padahal MQTT/Gemini API belum diimplementasikan (lihat [5-SYSDesign.md](5-SYSDesign.md) §1.2). | Diperbaiki & diberi catatan status implementasi agar rencana pengujian tidak dianggap bisa dieksekusi penuh sebelum komponen terkait selesai dibangun. |
 
 ---
 
@@ -61,19 +68,19 @@ graph TD
 ### 2.5 End to End (E2E) Testing (Pengujian Ujung ke Ujung)
 * **Fokus**: Pengujian alur transaksi penuh pengguna (User Journey) dari interaksi UI, perubahan database, hingga sinyal IoT.
 * **Skenario E2E Utama**:
-  1. Pengguna login di `profile.html` -> Cari kelas di `index.html` -> Lakukan booking hold -> Bayar via top-up saldo wallet.
-  2. Mendekati waktu sewa -> Pintu smart lock terbuka otomatis -> User masuk kelas -> Mulai/selesai rekaman via dashboard `in-room.html` -> Data rekaman tersimpan di database dan transkrip AI terbuat -> File unduhan dapat diakses kembali di `profile.html`.
+  1. Pengguna login di `profile.html` -> Cari kelas di `index.html` -> Lakukan booking hold -> Bayar via top-up saldo wallet. *(Dapat dijalankan hari ini — seluruh dependensi sudah terimplementasi.)*
+  2. Mendekati waktu sewa -> Pintu smart lock terbuka otomatis -> User masuk kelas -> Mulai/selesai rekaman via dashboard `in-room.html` -> Data rekaman tersimpan di database dan transkrip AI terbuat -> File unduhan dapat diakses kembali di `profile.html`. *(Belum dapat dijalankan end-to-end — buka pintu otomatis via MQTT dan transkripsi Gemini masih desain target, lihat [5-SYSDesign.md](5-SYSDesign.md) §1.2; bagian rekaman & Video Vault sudah bisa diuji terpisah.)*
 
 ### 2.6 Performance Testing (Pengujian Kinerja)
 * **Fokus**: Menjamin kestabilan performa sistem saat diakses banyak pengguna bersamaan (High Concurrency).
 * **Cakupan Pengujian**:
   * **Concurrency Lock Stress Testing**: Mensimulasikan ratusan request pemesanan hold beruntun di detik yang sama untuk menguji keandalan Redis `SET NX` mencegah pemesanan ganda (*double booking*).
-  * **Response Latency Target**: Memastikan rute API non-IO berat memberikan response time kurang dari **100ms** (mis. `GET /rooms` dengan optimasi kueri terindeks dari [3-DBQuery.md](3-DBQuery.md)).
+  * **Response Latency Target**: Memastikan rute API non-IO berat memberikan response time kurang dari **100ms** (mis. `GET /rooms` dengan optimasi kueri terindeks dari [3-DBQuery.md](3-DBQuery.md)) — target teknik internal, bukan turunan NFR-P01 PRD (NFR-P01 mengukur *page load* katalog <2 detik, bukan latensi API backend).
 
 ### 2.7 Security Testing (Pengujian Keamanan)
 * **Fokus**: Perlindungan data sensitif, hak akses RBAC, dan audit kepatuhan.
 * **Cakupan Pengujian**:
-  * **RBAC Enforcement**: Memastikan rute administratif (`/api/v1/admin/*`) mutlak memblokir token dengan role `USER` dan memicu `403 Forbidden`.
+  * **RBAC Enforcement**: Memastikan rute administratif (`/api/v1/admin/*`) mutlak memblokir token dengan role `MEMBER`/`PREMIUM_MEMBER` (non-admin) dan memicu `403 Forbidden`; rute khusus `SUPER_ADMIN` (mis. `/admin/audit-logs`) juga memblokir token `STUDIO_ADMIN`.
   * **Cryptographic Checks**: Verifikasi keamanan penyimpanan password di database menggunakan hash `bcryptjs` satu arah.
   * **SQL Injection & XSS Prevention**: Memastikan query database mutlak menggunakan parameterisasi pool (`pg.query(text, params)`), bukan penggabungan string langsung (*string concatenation*).
 
@@ -84,7 +91,7 @@ graph TD
   * Verifikasi hitungan biaya sewa: Memastikan rumus durasi booking dikali harga per jam dan harga add-on transkrip (Rp 50.000) terhitung tepat pada respon transaksi.
 
 ### 2.9 IoT Loop & Hardware Testing (Pengujian Integrasi Perangkat)
-* **Fokus**: Pengujian komunikasi pub/sub MQTT antara smart lock fisik (atau simulator hardware) dengan MQTT Broker/Express API.
+* **Fokus**: Pengujian komunikasi pub/sub MQTT antara smart lock fisik (atau simulator hardware) dengan MQTT Broker/Express API. *(Status: desain target — belum ada endpoint MQTT di backend saat ini, lihat [5-SYSDesign.md](5-SYSDesign.md) §1.2. Bagian ini baru bisa dieksekusi setelah integrasi broker/hardware dikerjakan.)*
 * **Cakupan Pengujian**:
   * Publikasi request pembukaan pintu dari hardware di topik `/classroom/door/access_req`.
   * Pengiriman perintah buka solenoid pintu dari backend di topik `/classroom/door/unlock` dengan parameter command `UNLOCK`.
