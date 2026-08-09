@@ -1,6 +1,6 @@
 # Dokumen Desain Sistem (System Design): Platform Sewa Smart Classroom
 
-**Versi:** 1.0  
+**Versi:** 1.1  
 **Tanggal:** 9 Agustus 2026  
 **Penulis:** System Architect / Lead Engineer  
 **Status:** Draf Arsitektur Sistem Produksi  
@@ -11,6 +11,14 @@
 * [3-DBQuery.md](3-DBQuery.md) (Optimasi Kueri SQL)
 * [4-APIDesign.md](4-APIDesign.md) (Kontrak REST & MQTT)
 * [4-APIBackend.md](4-APIBackend.md) (Realisasi Implementasi API)
+* [X_ProgressSummary.md](../docs/X_ProgressSummary.md) (Tracking Progres & Punch List — acuan status implementasi aktual)
+
+### Riwayat Revisi
+
+| Versi | Bagian | Sebelum | Sesudah |
+| :--- | :--- | :--- | :--- |
+| 1.0 | Dokumen (keseluruhan) | — | Draf awal arsitektur sistem. |
+| 1.1 | §1.2 (baru), §2.1, §2.2, §2.3.A, §3.2, §4, §5.1, tautan §2.3/§4 | Cross-check terhadap source code aktual menemukan: (1) diagram & alur MQTT/S3/Midtrans/Gemini digambarkan seolah sudah terhubung penuh, padahal baru desain target — belum ditautkan ke broker/hardware/gateway nyata pada 5 screen prototipe yang ada; (2) §2.1 mengklaim frontend dibundel Vite, padahal 5 halaman prototipe memakai Tailwind & Lucide via CDN langsung (scaffold React/Vite di repo tidak dipakai halaman-halaman ini); (3) §2.2 daftar route tidak lengkap (hilang `users.routes.js`, `subscriptions.routes.js`, seluruh `server/routes/admin/*`); (4) §5.1 RBAC memakai istilah role (`USER`/`OPERATOR`/`ADMIN`) yang tidak cocok `role_enum` di `3-DBSchema.md` maupun middleware aktual (`MEMBER`/`PREMIUM_MEMBER`/`STUDIO_ADMIN`/`SUPER_ADMIN`); (5) 2 tautan relatif rusak. | Diperbaiki langsung + ditambahkan §1.2 (status implementasi eksplisit per komponen) agar dokumen ini tidak mencampur desain target dengan realisasi aktual. |
 
 ---
 
@@ -46,17 +54,33 @@ graph TD
     BE -->|Transkripsi Otomatis| AI[Google GenAI / Gemini API]
 ```
 
+### 1.2 Status Implementasi vs Desain Target
+
+Diagram di atas menggambarkan **arsitektur target penuh**. Per tanggal dokumen ini, backend hanya melayani 5 screen prototipe yang sudah ada (`index.html`, `in-room.html`, `profile.html`, `admin/dashboard.html`, `admin/rooms.html` — lihat catatan cakupan di [server/index.js](server/index.js)). Status tiap komponen pada diagram §1.1:
+
+| Komponen | Status | Catatan |
+| :--- | :--- | :--- |
+| Frontend statis + Backend Express + PostgreSQL (Aiven) | **Terhubung & berjalan** | Routing lengkap di §2.2, skema live di `3-DBQuery.md`. |
+| Redis — Slot Locking (§3.1) & Heartbeat/Session key | **Terhubung & berjalan** | `SET NX` di `bookings.routes.js`, key helper di `server/config/redis.js`. |
+| MQTT Broker, Smart Lock, AI Camera & Audio Array (§3.2) | **Desain target, belum diimplementasikan** | Tidak ada endpoint publish/subscribe MQTT maupun pemakaian tabel `room_access_tokens` di source code. Buka pintu saat ini hanya tersedia lewat override manual admin (`POST /admin/studio/door/unlock`), tanpa hardware nyata. |
+| Object Storage (S3/MinIO) | **Desain target, belum diimplementasikan** | `storage_target` pada `studio.routes.js` baru berupa string placeholder (`s3://vault/{booking_id}/`); belum ada client S3/MinIO di `package.json`. |
+| Payment Gateway (Midtrans) | **Desain target, belum diimplementasikan** | Tidak ada referensi Midtrans di kode backend; alur saat ini berbasis kredit `wallet_transactions` internal (hasil refund pembatalan). |
+| AI Transcription (Gemini API) | **Desain target, belum diimplementasikan** | `@google/genai` terdaftar sebagai dependency tapi belum dipanggil di `server/`. |
+
+> Detail backlog & alasan penundaan tiap komponen di atas dilacak di `docs/X_ProgressSummary.md` (§6, §12) — bagian ini hanya merujuk status terkini, tidak menduplikasi daftar tugasnya.
+
 ---
 
 ## 2. Rincian Lapisan Arsitektur (Layer Breakdown)
 
 ### 2.1 Lapisan Presentasi (Frontend Layer)
-Lapisan presentasi menggunakan arsitektur Multi-Page Application (MPA) berbasis file statis HTML yang digabungkan secara dinamis menggunakan modul JavaScript modern dan dibundel dengan **Vite**.
+Lapisan presentasi menggunakan arsitektur Multi-Page Application (MPA) berbasis file statis HTML. Kelima halaman prototipe memuat Tailwind & Lucide langsung lewat CDN `<script>` tag (tanpa proses build) dan memicu HTTP fetch requests langsung ke backend API.
 
 * **Teknologi Utama**:
-  * **HTML5 & Vanilla JavaScript**: Mengendalikan logika UI secara langsung tanpa overhead framework yang berat, memicu HTTP fetch requests langsung ke backend API.
-  * **Tailwind CSS (v4)**: Memastikan tampilan responsif, modern, dan konsisten (menggunakan curated theme palette untuk brand & surface).
-  * **Lucide Icons**: Pustaka ikon vektor untuk komponen visual yang kaya.
+  * **HTML5 & Vanilla JavaScript**: Mengendalikan logika UI secara langsung tanpa overhead framework yang berat.
+  * **Tailwind CSS (via CDN)**: Memastikan tampilan responsif, modern, dan konsisten (menggunakan curated theme palette untuk brand & surface, dikonfigurasi inline per halaman).
+  * **Lucide Icons (via CDN)**: Pustaka ikon vektor untuk komponen visual yang kaya.
+* **Catatan Stack Paralel**: Repo juga berisi scaffold **React 19 + Vite + Tailwind v4** (`src/App.tsx`, `vite.config.ts`) yang **tidak dipakai** oleh 5 halaman prototipe di bawah — dua stack front-end ini masih tumpang tindih dan belum dikonsolidasi. Jangan asumsikan halaman-halaman ini melalui proses bundling Vite.
 * **Halaman Utama**:
   * [index.html](index.html): Halaman Pencarian & Katalog Kelas (Discovery).
   * [in-room.html](in-room.html): Dasbor Kontroler di dalam ruang kelas (untuk kontrol perangkat, status IoT, & recording).
@@ -70,7 +94,7 @@ Lapisan backend dibangun menggunakan **Node.js** dengan framework **Express.js**
 * **Komponen Struktur Kode**:
   * **Config**: Koneksi database terpusat untuk PostgreSQL pool ([db.js](server/config/db.js)) dan klien Redis ([redis.js](server/config/redis.js)).
   * **Middleware**: Validasi otentikasi ([auth.js](server/middleware/auth.js)) dan standarisasi penanganan error ([errorHandler.js](server/middleware/errorHandler.js)).
-  * **Routes**: Pengorganisasian endpoint modular ([auth.routes.js](server/routes/auth.routes.js), [bookings.routes.js](server/routes/bookings.routes.js), [rooms.routes.js](server/routes/rooms.routes.js), [studio.routes.js](server/routes/studio.routes.js)).
+  * **Routes**: Pengorganisasian endpoint modular per domain — publik/pengguna: [auth.routes.js](server/routes/auth.routes.js), [users.routes.js](server/routes/users.routes.js), [rooms.routes.js](server/routes/rooms.routes.js), [bookings.routes.js](server/routes/bookings.routes.js), [subscriptions.routes.js](server/routes/subscriptions.routes.js), [studio.routes.js](server/routes/studio.routes.js); admin: [admin/dashboard.routes.js](server/routes/admin/dashboard.routes.js), [admin/bookings.routes.js](server/routes/admin/bookings.routes.js), [admin/door.routes.js](server/routes/admin/door.routes.js), [admin/audit.routes.js](server/routes/admin/audit.routes.js), [admin/rooms.routes.js](server/routes/admin/rooms.routes.js).
   * **Utils**: Fungsi bantuan audit log keamanan, enkripsi JWT, standar respon, slug generator, dan validasi input.
 
 ### 2.3 Lapisan Data & Penyimpanan (Data & Storage Layer)
@@ -79,7 +103,7 @@ Sistem menggunakan strategi penyimpanan data hibrida untuk menjaga integritas da
 
 #### A. Database Relasional: PostgreSQL 16+
 Digunakan untuk menyimpan seluruh data relasional yang memerlukan kepatuhan penuh ACID (Atomicity, Consistency, Isolation, Durability). 
-* Terdiri dari **19 tabel utama** (lihat detail skema lengkap di [3-DBSchema.md](README/3-DBSchema.md)).
+* Terdiri dari **19 tabel utama** (lihat detail skema lengkap di [3-DBSchema.md](3-DBSchema.md)).
 * Menangani integritas data pengguna (`users`), transaksi keuangan (`wallet_transactions`, `payments`), data operasional kelas (`rooms`, `bookings`), riwayat IoT (`door_access_attempts`, `manual_unlock_logs`), data rekaman & AI (`recordings`, `ai_transcriptions`), serta audit log administratif (`audit_logs`).
 
 #### B. Cache & In-Memory Store: Redis 7.x
@@ -128,7 +152,7 @@ sequenceDiagram
 
 ### 3.2 Alur Otentikasi & Akses Pintar IoT (Smart Lock)
 
-Akses pintu fisik di kelas didasarkan pada token akses aktif (`pin_code` atau `qr_code_content`) yang hanya valid selama rentang waktu reservasi yang dikonfirmasi (`CONFIRMED` atau `IN_ROOM`).
+Akses pintu fisik di kelas didasarkan pada token akses aktif (`pin_code` atau `qr_code_content`) yang hanya valid selama rentang waktu reservasi yang dikonfirmasi (`CONFIRMED` atau `IN_ROOM`). *(Status: desain target — lihat §1.2; belum ada endpoint MQTT/hardware yang diimplementasikan.)*
 
 ```mermaid
 sequenceDiagram
@@ -161,11 +185,11 @@ sequenceDiagram
 
 ## 4. Integrasi Kecerdasan Buatan (AI Integration - Gemini SDK)
 
-Sistem memanfaatkan pustaka SDK resmi `@google/genai` untuk memproses rekaman sesi perkuliahan/presentasi di dalam kelas menjadi transkrip teks berkualitas tinggi secara otomatis.
+Sistem memanfaatkan pustaka SDK resmi `@google/genai` untuk memproses rekaman sesi perkuliahan/presentasi di dalam kelas menjadi transkrip teks berkualitas tinggi secara otomatis. *(Status: desain target — lihat §1.2; dependency sudah terdaftar di `package.json` namun belum dipanggil di kode backend.)*
 
 1. **Trigger Aksi**: Ketika kelas berakhir atau pengguna menekan tombol "Stop Recording" di dasbor [in-room.html](in-room.html), backend memperbarui status rekaman menjadi `PROCESSING`.
 2. **Prapemrosesan Audio**: Audio diekstrak dari file video rekaman kelas yang tersimpan di Object Storage.
-3. **Pengolahan Gemini API**: Backend mengirimkan file audio/video tersebut ke Google Gemini model menggunakan sistem prompt yang dioptimalkan untuk transkripsi akademis dan profesional (mengacu pada modul prompt di [docs/GEMINI_SYSTEM_PROMPT.md](docs/GEMINI_SYSTEM_PROMPT.md)).
+3. **Pengolahan Gemini API**: Backend mengirimkan file audio/video tersebut ke Google Gemini model menggunakan sistem prompt yang dioptimalkan untuk transkripsi akademis dan profesional (mengacu pada modul prompt di [GEMINI_SYSTEM_PROMPT.md](../docs/GEMINI_SYSTEM_PROMPT.md)).
 4. **Penyimpanan Hasil**: Output transkrip berupa file format SubRip (`.srt`) dan metadata JSON (`.json`) disimpan kembali ke Object Storage dan tautannya direkam di tabel `ai_transcriptions`.
 5. **Akses Pengguna**: Pengguna dapat mengunduh transkrip dan video langsung dari tab Video Vault di halaman profil mereka.
 
@@ -176,12 +200,13 @@ Sistem memanfaatkan pustaka SDK resmi `@google/genai` untuk memproses rekaman se
 Keandalan operasional dan aspek audit administratif menjadi prioritas dalam arsitektur sistem ini untuk mencegah penyalahgunaan hak akses fisik maupun finansial.
 
 ### 5.1 Role-Based Access Control (RBAC)
-Sistem membagi pengguna ke dalam tiga role utama dengan tingkat hak akses yang ketat:
-* **`USER`**: Mahasiswa atau dosen yang menyewa ruangan. Hanya berhak memesan ruangan, melakukan pembayaran saldo dompet, membuka pintu kelas miliknya sendiri pada jam booking, serta mengakses rekaman & transkrip kelasnya.
-* **`OPERATOR`**: Staf operasional lapangan. Bertanggung jawab memantau ketersediaan kelas, mencatat penyelesaian pemeliharaan ruangan (`room_maintenance_logs`), mencatat overtime keterlambatan checkout (`late_checkout_logs`), dan memantau status heartbeat koneksi IoT.
-* **`ADMIN`**: Pengelola tingkat tinggi. Memiliki hak penuh untuk membatalkan pesanan pengguna lain (*override cancellation*), mengubah saldo wallet pengguna, memproses pengembalian dana (*refund*), melakukan pembukaan pintu secara darurat (*emergency door override*), dan melihat seluruh audit log sistem.
+Sistem membagi pengguna ke dalam empat role (`role_enum`, lihat [3-DBSchema.md](3-DBSchema.md) §4), ditegakkan lewat middleware [auth.js](server/middleware/auth.js):
+* **`MEMBER`**: Pengguna pay-per-use (mahasiswa, dosen, atau umum). Berhak memesan ruangan, membayar via saldo dompet, membuka pintu kelas miliknya sendiri pada jam booking, serta mengakses rekaman & transkrip kelasnya.
+* **`PREMIUM_MEMBER`**: Pengguna dengan langganan (*subscription*) aktif. Hak akses sama seperti `MEMBER`, ditambah kuota booking bulanan sesuai paket langganannya (lihat alur kuota di [3-DBSchema.md](3-DBSchema.md) §5.2).
+* **`STUDIO_ADMIN`**: Staf operasional/pengelola studio (`requireAdmin`). Bertanggung jawab memantau ketersediaan & utilisasi kelas (dashboard metrics/alerts), mengelola inventori ruangan & status maintenance, mencatat overtime keterlambatan checkout (`late_checkout_logs`), melakukan pembukaan pintu manual (`manual_unlock_logs`), serta memproses pembatalan booking pengguna lain (*override cancellation*) yang otomatis mengkreditkan refund ke wallet pengguna (`booking_cancellations` → `wallet_transactions`).
+* **`SUPER_ADMIN`**: Pengelola tingkat tertinggi (`requireSuperAdmin`). Memiliki seluruh hak `STUDIO_ADMIN`, ditambah akses eksklusif untuk melihat seluruh audit log sistem (`GET /admin/audit-logs`).
 
 ### 5.2 Sistem Audit Log Administratif
-Setiap tindakan kritis (seperti perubahan role, penambahan saldo wallet manual, pembatalan pesanan oleh admin, dan pembukaan pintu manual) wajib melewati middleware pencatatan audit ([audit.js](server/utils/audit.js)).
-* Middleware ini secara otomatis menangkap data pelaku (`actor_id`, `actor_role`), tindakan (`action`), tabel target, data perubahan (`changes_payload`), dan deskripsi aktivitas.
+Setiap tindakan kritis (seperti pembatalan pesanan oleh admin dan pembukaan pintu manual) wajib memanggil utilitas pencatatan audit `writeAuditLog()` ([audit.js](server/utils/audit.js)) sebelum meresponsnya sebagai sukses.
+* Fungsi ini menangkap data pelaku (`actor_id`, `actor_role`), tindakan (`action`), tabel target, data perubahan (`changes_payload`), dan deskripsi aktivitas.
 * Seluruh log disimpan dalam tabel `audit_logs` dan tidak dapat diubah (*immutable*), yang kemudian ditampilkan pada dasbor admin untuk mematuhi standar kepatuhan operasional.
