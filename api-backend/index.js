@@ -51,6 +51,10 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`[server] VC-SCR API listening on http://localhost:${PORT}${API_BASE}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`[server] VC-SCR API listening on http://localhost:${PORT}${API_BASE}`);
+  });
+}
+
+export default app;
