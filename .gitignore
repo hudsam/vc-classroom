@@ -10,5 +10,4 @@ bun.lock
 package-lock.json
 
 # projects
-api-backend/
 ui-frontend/
