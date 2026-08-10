@@ -8,6 +8,3 @@ coverage/
 .env*
 bun.lock
 package-lock.json
-
-# projects
-ui-frontend/
