@@ -1,3 +1,4 @@
+.DS_Store
 node_modules/
 build/
 dist/
@@ -5,6 +6,9 @@ coverage/
 .DS_Store
 *.log
 .env*
-!.env.example
 bun.lock
 package-lock.json
+
+# projects
+api-backend/
+ui-frontend/
