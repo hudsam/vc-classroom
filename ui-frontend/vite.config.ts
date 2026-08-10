@@ -27,5 +27,16 @@ export default defineConfig(({mode}) => {
         },
       },
     },
+    build: {
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          profile: path.resolve(__dirname, 'profile.html'),
+          inRoom: path.resolve(__dirname, 'in-room.html'),
+          'admin/dashboard': path.resolve(__dirname, 'admin/dashboard.html'),
+          'admin/rooms': path.resolve(__dirname, 'admin/rooms.html'),
+        },
+      },
+    },
   };
 });
