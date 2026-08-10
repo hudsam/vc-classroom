@@ -464,7 +464,8 @@
     <!-- Initialize Scripts -->
     <script>
         // API Base URL
-        const API_URL = '/api/v1';
+        const VITE_API_URL = '%VITE_API_URL%';
+        const API_URL = VITE_API_URL ? `${VITE_API_URL}/api/v1` : '/api/v1';
 
         // Initialize Lucide Icons
         lucide.createIcons();
